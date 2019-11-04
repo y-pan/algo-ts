@@ -16,7 +16,7 @@ interface TreeState {
 export class TreeView extends React.Component<TreeProps, TreeState> {
     private readonly tree = new Tree<number, string>();
     private treeSvgContainer: Nullable<HTMLElement> = null;
-    private treeVis: TreeVis = new TreeVis();
+    private treeVis: TreeVis<number> = new TreeVis();
 
     constructor(props: TreeProps) {
         super(props);
@@ -43,7 +43,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     }
 
     private addRandom(): void {
-        const key: number = Math.floor(Math.random() * 10);
+        const key: number = Math.floor(Math.random() * 30);
         const value: string = uniqueId(key);
         this.tree.put(key, value);
         this.renderSvg(this.tree);
@@ -52,6 +52,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private renderSvg(tree: Tree<number, string>): void {
         if (this.treeSvgContainer) {
             this.treeVis
+                .withNodeSize(10)
                 .withContainer(this.treeSvgContainer)
                 .withData(new TreeLevelScan(this.tree).getFlatKeyArray()).draw();
         }

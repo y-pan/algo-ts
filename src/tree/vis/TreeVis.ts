@@ -6,8 +6,8 @@ import {BaseTreeStructLevel} from "../types/TreeStructLevel";
 import {isNull} from "../../utils/util";
 import {Nullable} from "../../types/Nullable";
 
-export class TreeVis implements Vis<number> {
-    private array: Nullable<number>[] = [];
+export class TreeVis<T extends number | string> implements Vis<T> {
+    private array: Nullable<T>[] = [];
     private nodeSize: number = 15;
     private _vSpace: number = 5;
     private initialHeight: number = 50;
@@ -22,22 +22,22 @@ export class TreeVis implements Vis<number> {
         this._vSpace = 5;
     }
 
-    withData(array: Nullable<number>[]): TreeVis {
+    withData(array: Nullable<T>[]): TreeVis<T> {
         this.array = array;
         return this;
     }
 
-    withNodeSize(nodeCircleRadius: number): TreeVis {
+    withNodeSize(nodeCircleRadius: number): TreeVis<T> {
         nodeCircleRadius && (this.nodeSize = nodeCircleRadius);
         return this;
     }
 
-    vSpace(verticalLevelSpacing: number): TreeVis {
+    vSpace(verticalLevelSpacing: number): TreeVis<T> {
         this._vSpace = verticalLevelSpacing;
         return this;
     }
 
-    withContainer(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis {
+    withContainer(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis<T> {
         if (!this.svg) {
             const domContainer = (typeof domElementOrFunc === "function") ? domElementOrFunc() : domElementOrFunc;
             if (!domContainer) {
@@ -178,16 +178,16 @@ export class TreeVis implements Vis<number> {
             .attr("fill", "#fffa00");
     }
 
-    mapLevel(level: BaseTreeStructLevel, array: Nullable<number>[], maxLevelSize: number): TreeStructLevel {
+    mapLevel(level: BaseTreeStructLevel, array: Nullable<T>[], maxLevelSize: number): TreeStructLevel {
 
         const size = level.capacity;
         const deltaHSpace = (maxLevelSize / size - 1) * (this.nodeSize * 2) / 2;
 
-        const cx = (d: Nullable<number>, i: number) => (i) * (this.nodeSize + deltaHSpace) * 2 + deltaHSpace;
+        const cx = (d: Nullable<T>, i: number) => (i) * (this.nodeSize + deltaHSpace) * 2 + deltaHSpace;
         const cy = level.height * (this.nodeSize + this._vSpace) * 2;
 
         const mappedNodes: TreeStructLevelNode[] = level.indices.map(i => array[i])
-            .map((d: Nullable<number>, i) => {
+            .map((d: Nullable<T>, i) => {
                 return {
                     x: cx(d, i),
                     y: cy,
@@ -211,7 +211,7 @@ export class TreeVis implements Vis<number> {
         return {...level, mappedNodes: mappedNodes, mappedLabels: mappedLabels};
     }
 
-    nodeColor(value: Nullable<number>, index: number): string {
+    nodeColor(value: Nullable<T>, index: number): string {
         const baseColor = "#2140ff";
         const emptyColor = "#cccccc";
         return (isNull(value) || index >= this.array.length) ? emptyColor : baseColor;
