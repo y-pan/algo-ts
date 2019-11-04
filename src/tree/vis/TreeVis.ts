@@ -6,9 +6,9 @@ import {BaseTreeStructLevel} from "../types/TreeStructLevel";
 import {isNull} from "../../utils/util";
 import {Nullable} from "../../types/Nullable";
 
-export class TreeVis implements Vis {
+export class TreeVis implements Vis<number> {
     private array: Nullable<number>[] = [];
-    private _nodeSize: number = 15;
+    private nodeSize: number = 15;
     private _vSpace: number = 5;
     private initialHeight: number = 50;
     private initialWidth: number = 50;
@@ -18,17 +18,17 @@ export class TreeVis implements Vis {
 
     constructor() {
         this.array = [];
-        this._nodeSize = 15;
+        this.nodeSize = 15;
         this._vSpace = 5;
     }
 
-    data(array: Nullable<number>[]): TreeVis {
+    withData(array: Nullable<number>[]): TreeVis {
         this.array = array;
         return this;
     }
 
-    nodeSize(nodeCircleRadius: number): TreeVis{
-        nodeCircleRadius && (this._nodeSize = nodeCircleRadius);
+    withNodeSize(nodeCircleRadius: number): TreeVis {
+        nodeCircleRadius && (this.nodeSize = nodeCircleRadius);
         return this;
     }
 
@@ -37,7 +37,7 @@ export class TreeVis implements Vis {
         return this;
     }
 
-    container(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis {
+    withContainer(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis {
         if (!this.svg) {
             const domContainer = (typeof domElementOrFunc === "function") ? domElementOrFunc() : domElementOrFunc;
             if (!domContainer) {
@@ -49,7 +49,7 @@ export class TreeVis implements Vis {
                 .attr("height", 300);
 
             this.svgGroup = this.svg.append("g")
-                .attr("transform", `translate(${this._nodeSize}, ${this._nodeSize})`); // Having a group, easy to redraw everything
+                .attr("transform", `translate(${this.nodeSize}, ${this.nodeSize})`); // Having a group, easy to redraw everything
         }
         return this;
     }
@@ -62,7 +62,7 @@ export class TreeVis implements Vis {
         const treeStruct = new TreeStruct(this.array.length);// TreeStruct only cares about the size, and make structure, not the actual values
 
         // resize svg
-        this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this._nodeSize + this._vSpace) * 2);
+        this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this.nodeSize + this._vSpace) * 2);
 
         // use structure to map each level
         const mappedLevels: TreeStructLevel[] = [];
@@ -181,17 +181,17 @@ export class TreeVis implements Vis {
     mapLevel(level: BaseTreeStructLevel, array: Nullable<number>[], maxLevelSize: number): TreeStructLevel {
 
         const size = level.capacity;
-        const deltaHSpace = (maxLevelSize / size - 1) * (this._nodeSize * 2) / 2;
+        const deltaHSpace = (maxLevelSize / size - 1) * (this.nodeSize * 2) / 2;
 
-        const cx = (d: Nullable<number>, i: number) => (i) * (this._nodeSize + deltaHSpace) * 2 + deltaHSpace;
-        const cy = level.height * (this._nodeSize + this._vSpace) * 2;
+        const cx = (d: Nullable<number>, i: number) => (i) * (this.nodeSize + deltaHSpace) * 2 + deltaHSpace;
+        const cy = level.height * (this.nodeSize + this._vSpace) * 2;
 
         const mappedNodes: TreeStructLevelNode[] = level.indices.map(i => array[i])
             .map((d: Nullable<number>, i) => {
                 return {
                     x: cx(d, i),
                     y: cy,
-                    r: this._nodeSize,
+                    r: this.nodeSize,
                     fill: this.nodeColor(d, i),
                     stroke: "#ffffff",
                 }
@@ -201,9 +201,9 @@ export class TreeVis implements Vis {
             .map((d, i) => {
                 return {
                     text: (isNull(d) ? "" : String(d)),
-                    x: cx(d, i) - this._nodeSize / 2,
-                    y: cy + this._nodeSize / 3,
-                    fontSize: this._nodeSize,
+                    x: cx(d, i) - this.nodeSize / 2,
+                    y: cy + this.nodeSize / 3,
+                    fontSize: this.nodeSize,
                     fill: "red"
                 }
             });
@@ -212,7 +212,6 @@ export class TreeVis implements Vis {
     }
 
     nodeColor(value: Nullable<number>, index: number): string {
-
         const baseColor = "#2140ff";
         const emptyColor = "#cccccc";
         return (isNull(value) || index >= this.array.length) ? emptyColor : baseColor;

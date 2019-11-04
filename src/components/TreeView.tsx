@@ -52,8 +52,8 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private renderSvg(tree: Tree<number, string>): void {
         if (this.treeSvgContainer) {
             this.treeVis
-                .container(this.treeSvgContainer)
-                .data(new TreeLevelScan(this.tree).getFlatKeyArray()).draw();
+                .withContainer(this.treeSvgContainer)
+                .withData(new TreeLevelScan(this.tree).getFlatKeyArray()).draw();
         }
     }
 }
