@@ -5,9 +5,12 @@ import {TreeStructLevel} from "../types/TreeStructLevelMapped";
 import {BaseTreeStructLevel} from "../types/TreeStructLevel";
 import {isNull} from "../../utils/util";
 import {Nullable} from "../../types/Nullable";
+import {Vis} from "../../types/Vis";
+import {BiFunc} from "../../types/BiFunc";
 
 export class TreeVis<T extends number | string> implements Vis<T> {
     private array: Nullable<T>[] = [];
+    private nodeColorProvider: BiFunc<Nullable<T>, number, string> | undefined;
     private nodeSize: number = 15;
     private _vSpace: number = 5;
     private initialHeight: number = 50;
@@ -24,6 +27,11 @@ export class TreeVis<T extends number | string> implements Vis<T> {
 
     withData(array: Nullable<T>[]): TreeVis<T> {
         this.array = array;
+        return this;
+    }
+
+    withNodeColorProvider(colorProvider: BiFunc<Nullable<T>, number, string>): TreeVis<T> {
+        this.nodeColorProvider = colorProvider;
         return this;
     }
 
@@ -58,8 +66,8 @@ export class TreeVis<T extends number | string> implements Vis<T> {
         this.clear();
         if (!this.array || this.array.length === 0) return;
 
-        // build tree structure from array size
-        const treeStruct = new TreeStruct(this.array.length);// TreeStruct only cares about the size, and make structure, not the actual values
+        // build tree structure from array _size
+        const treeStruct = new TreeStruct(this.array.length);// TreeStruct only cares about the _size, and make structure, not the actual values
 
         // resize svg
         this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this.nodeSize + this._vSpace) * 2);
@@ -192,7 +200,7 @@ export class TreeVis<T extends number | string> implements Vis<T> {
                     x: cx(d, i),
                     y: cy,
                     r: this.nodeSize,
-                    fill: this.nodeColor(d, i),
+                    fill: this.getNodeColor(d, i),
                     stroke: "#ffffff",
                 }
             });
@@ -211,7 +219,12 @@ export class TreeVis<T extends number | string> implements Vis<T> {
         return {...level, mappedNodes: mappedNodes, mappedLabels: mappedLabels};
     }
 
-    nodeColor(value: Nullable<T>, index: number): string {
+    private getNodeColor(value: Nullable<T>, index: number): string {
+        if (this.nodeColorProvider) {
+            return this.nodeColorProvider(value, index);
+        }
+
+        // default setting
         const baseColor = "#2140ff";
         const emptyColor = "#cccccc";
         return (isNull(value) || index >= this.array.length) ? emptyColor : baseColor;

@@ -1,7 +1,7 @@
 interface TreeStructLevelNode {
     x: number;
     y: number;
-    r: number; // radius, or size
+    r: number; // radius, or _size
     fill: string;
     stroke: string;
 }

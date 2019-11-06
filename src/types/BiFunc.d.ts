@@ -1,0 +1,1 @@
+export type BiFunc<T1, T2, R> = (val1: T1, val2: T2) => R;

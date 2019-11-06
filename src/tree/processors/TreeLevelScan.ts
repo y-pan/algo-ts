@@ -1,16 +1,16 @@
-import {Tree} from "../Tree";
 import {ITreeNode} from "../types/ITreeNode";
 import {Nullable} from "../../types/Nullable";
+import {ITree} from "../types/ITree";
 
-export class TreeLevelScan<K, V> {
-    private readonly rootNote: Nullable<ITreeNode<K, V>>;
-    private readonly levels: Nullable<ITreeNode<K, V>>[][];
+export class TreeLevelScan<K, V, N extends ITreeNode<K, V>> {
+    private readonly rootNote: Nullable<N>;
+    private readonly levels: Nullable<N>[][];
 
-    constructor(tree: Tree<K, V>) {
-        if (!tree) throw "TreeView is required";
+    constructor(tree: ITree<K, V, N>) {
+        if (!tree) throw "Tree is required";
         this.rootNote = tree.getRoot();
         this.levels = []; // all levels of nodes
-        const currentLevel: Nullable<ITreeNode<K, V>>[] = [];// first level has the root node only
+        const currentLevel: Nullable<N>[] = [];// first level has the root node only
 
         if (this.rootNote) {
             currentLevel.push(this.rootNote);
@@ -19,12 +19,13 @@ export class TreeLevelScan<K, V> {
         }
     }
 
-    private scan(level: Nullable<ITreeNode<K, V>>[]): void {
-        const nextLevel: Nullable<ITreeNode<K, V>>[] = [];
+    private scan(level: Nullable<N>[]): void {
+        const nextLevel: Nullable<N>[] = [];
         level.forEach(node => {
             if (!node) {
                 nextLevel.push(undefined, undefined); // we need to use "undefined" as placeholder to reserve the position even though they could be empty/null
             } else {
+                // @ts-ignore
                 nextLevel.push(node.getLeft(), node.getRight());
             }
         });
@@ -36,8 +37,8 @@ export class TreeLevelScan<K, V> {
         }
     }
 
-    getFlatNodeArray(): Nullable<ITreeNode<K, V>>[] {
-        const nodes: Nullable<ITreeNode<K, V>>[] = [];
+    getFlatNodeArray(): Nullable<N>[] {
+        const nodes: Nullable<N>[] = [];
         this.levels.forEach(nodeArray => {
             nodeArray.forEach(node => nodes.push(node));
         });

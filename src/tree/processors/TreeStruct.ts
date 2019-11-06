@@ -12,7 +12,7 @@ export class TreeStruct {
 
     constructor(size: number) {
         // INDEX - the actual index in 1-d data array
-        if (!size) throw new Error("Illegal tree size: " + size);
+        if (!size) throw new Error("Illegal tree _size: " + size);
         this.size = size;
         this.heights = []; // INDEX => height (level)
         this.capacities = []; // INDEX => level capacity
@@ -75,8 +75,8 @@ export class TreeStruct {
         if (index < 0 || index >= this.size) throw new Error("Index out of bounds: " + index);
         let height = this.getHeight(index);
         return {height: height, indices: this.heightToIndices[height], capacity: this.getLevelCapacity(index)};
-        // indices may not cover all positions of that level, like not enough size to fill out the bottom level.
-        // capacity shows the max size of the level
+        // indices may not cover all positions of that level, like not enough _size to fill out the bottom level.
+        // capacity shows the max _size of the level
     }
 
 }
