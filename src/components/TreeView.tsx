@@ -116,12 +116,12 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                     return node == null ? "" : node.getVal();
                 })
                 .withNodeColorProvider((node: Nullable<IRedBlackTreeNode<number, string>>, i: number) => {
-                   if (node == null) {
+                   if (!node) {
                        return "#ffffff";
                    } else if (node.isRed()) {
-                       return "#ff0207";
+                       return "#ff7f84";
                    } else {
-                       return "#2b272b";
+                       return "#b7b5bc";
                    }
                 }).draw();
         }

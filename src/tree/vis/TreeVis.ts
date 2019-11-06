@@ -124,28 +124,30 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
     }
 
     drawLevelConnections(level1: TreeStructLevel, level2: TreeStructLevel): void {
-        const data = [];
+        const lines: NodeConnection[] = [];
         for (let i = 0; i < level1.mappedNodes.length; i++) {
             const parent = level1.mappedNodes[i];
-
+            const isEmpty: boolean = level1.mappedNodes[i].empty;
             const leftChildIndex = i * 2, rightChildIndex = i * 2 + 1;
 
             if (leftChildIndex < level2.mappedNodes.length) {
                 let leftChild = level2.mappedNodes[leftChildIndex];
-                data.push({
+                lines.push({
                     x1: parent.x,
                     y1: parent.y,
                     x2: leftChild.x,
-                    y2: leftChild.y
+                    y2: leftChild.y,
+                    empty: isEmpty
                 });
 
                 if (rightChildIndex < level2.mappedNodes.length) {
                     let rightChild = level2.mappedNodes[rightChildIndex];
-                    data.push({
+                    lines.push({
                         x1: parent.x,
                         y1: parent.y,
                         x2: rightChild.x,
-                        y2: rightChild.y
+                        y2: rightChild.y,
+                        empty: isEmpty
                     });
                 }
             }
@@ -154,7 +156,7 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         const clas = "tree-line--" + level1.height + "-" + level2.height;
 
         this.svgGroup.selectAll("line." + clas)
-            .data(data)
+            .data(lines)
             .enter().append("line")
             .attr("class", clas)
             .attr("x1", (d: any) => d.x1)
@@ -162,7 +164,7 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
             .attr("x2", (d: any) => d.x2)
             .attr("y2", (d: any) => d.y2)
             .attr("stroke-width", 1)
-            .attr("stroke", "green");
+            .attr("stroke", this.getLineColor);
     }
 
     drawLevel(mappedLevel: TreeStructLevel) {// mappedLevel
@@ -172,31 +174,33 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         }
         const clas = "level-" + mappedLevel.height;
         this.svgGroup.selectAll("circle." + clas)
-            .data(mappedLevel.mappedNodes).enter().append("circle").attr("class", clas)
-            .attr("cx", (d: any, i: number) => d.x)
-            .attr("cy", (d: any, i: number) => d.y)
-            .attr("r", (d: any, i: number) => d.r)
-            .attr("fill", (d: any, i: number) => d.fill)
+            .data(mappedLevel.mappedNodes)
+            .enter().append("circle")
+            .attr("class", clas)
+            .attr("cx", (d: TreeStructLevelNode, i: number) => d.x)
+            .attr("cy", (d: TreeStructLevelNode, i: number) => d.y)
+            .attr("r", (d: TreeStructLevelNode, i: number) => d.r)
+            .attr("fill", (d: TreeStructLevelNode, i: number) => d.fill)
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 2)
-            .on("mouseover", function (d: any, i: number, rects: any[]) {
+            .on("mouseover", function (d: TreeStructLevelNode, i: number, rects: any[]) {
                 // d3.select(d3.selectAll("text." + clas)._groups[0][i]).style("fill", "red")
                 // @ts-ignore
                 d3.select(this).style("fill", "#c303ff");
 
             })
-            .on("mouseout", function (d: any, i: number, rects: any[]) {
+            .on("mouseout", function (d: TreeStructLevelNode, i: number, rects: any[]) {
                 // @ts-ignore
                 d3.select(this).transition(500).style("fill", d.fill);
             });
 
         this.svgGroup.selectAll("text." + clas)
             .data(mappedLevel.mappedLabels).enter().append("text").attr("class", clas)
-            .text((d: any, i: number) => d.text)
-            .attr("x", (d: any, i: number) => d.x)
-            .attr("y", (d: any, i: number) => d.y)
-            .attr("font-size", (d: any, i: number) => d.fontSize)
-            .attr("fill", (d: any) => d.fill)
+            .text((d: TreeStructLevelNodeLabel, i: number) => d.text)
+            .attr("x", (d: TreeStructLevelNodeLabel, i: number) => d.x)
+            .attr("y", (d: TreeStructLevelNodeLabel, i: number) => d.y)
+            .attr("font-size", (d: TreeStructLevelNodeLabel, i: number) => d.fontSize)
+            .attr("fill", (d: TreeStructLevelNodeLabel) => d.fill)
             .attr("font-weight", "bold");
     }
 
@@ -216,17 +220,18 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
                     r: this.nodeSize,
                     fill: this.getNodeColor(d, i),
                     stroke: "#ffffff",
+                    empty: Boolean(!d)
                 }
             });
 
         const mappedLabels: TreeStructLevelNodeLabel[] = level.indices.map(i => array[i])
-            .map((d, i) => {
+            .map((d: Nullable<T>, i: number) => {
                 return {
                     text: this.getText(d, i),
                     x: cx(d, i) - this.nodeSize / 2,
                     y: cy + this.nodeSize / 3,
                     fontSize: this.nodeSize,
-                    fill: "#ffffff"
+                    fill: this.getTextColor(d, i)
                 }
             });
 
@@ -234,9 +239,9 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
     }
 
     private getNodeColor(node: Nullable<T>, index: number): string {
-        const emptyColor = "#cccccc";
-        if (!node) return emptyColor;
-        return this.nodeColorProvider ? this.nodeColorProvider(node, index) : emptyColor;
+        // const emptyColor = "#ffffff";
+        // if (!node) return emptyColor;
+        return this.nodeColorProvider ? this.nodeColorProvider(node, index) : "#ffffff";
     }
 
     private getKey(node: Nullable<T>, index: number): Nullable<K> {
@@ -253,6 +258,21 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         let k = this.getKey(d, i);
         return isNull(k) ? "" : String(k);
     }
+
+    private getTextColor(d: Nullable<T>, i: number) {
+        return "#000000";
+    }
+
+    private getLineColor(line: NodeConnection, index: number): string {
+        if (line.empty) return "none";
+        return "#00ff55";
+    }
 }
 
-
+interface NodeConnection {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    empty: boolean;
+}
