@@ -3,7 +3,7 @@ import {Nullable} from "./Nullable";
 import {BiFunc} from "./BiFunc";
 
 interface Vis<T> {
-    withData(data: T[]): Vis<T>;
+    withData(data: Nullable<T>[]): Vis<T>;
     withNodeColorProvider(colorProvider: BiFunc<Nullable<T>, number, string>): Vis<T>;
     withNodeSize(size: number): Vis<T>;
     withContainer(domeContainer: HTMLElement | Supplier<HTMLElement>): Vis<T>;

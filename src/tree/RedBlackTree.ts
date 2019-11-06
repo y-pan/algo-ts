@@ -67,7 +67,6 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
     protected putNode(node: Node<K, V>, key: K, val: V): Node<K, V> {
         this.validateKey(key);
-        console.log("putNode: ", node, key);
         if (!node) return new RedBlackTreeNode(key, val);
         if (key < node.getKey()) {
             node.setLeft(this.putNode(node.getLeft(), key, val));
@@ -146,16 +145,16 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         console.info("flipColors", node);
 
         if (!node) throw "Node is required";
-        if (RedBlackTreeNode.isBlack(node)) throw "flip colors: node is expected to be black";
+        // if (RedBlackTreeNode.isBlack(node)) throw "flip colors: node is expected to be black";
 
         const left = node.getLeft();
         const right = node.getRight();
 
-        if (RedBlackTreeNode.isBlack(left) || RedBlackTreeNode.isBlack(right)) throw "flip colors: both children are expected to be red";
+        // if (RedBlackTreeNode.isBlack(left) || RedBlackTreeNode.isBlack(right)) throw "flip colors: both children are expected to be red";
 
-        left && left.setRed(false);
-        right && right.setRed(false);
-        node.setRed(true);
+        left && left.setRed(!left.isRed());
+        right && right.setRed(!right.isRed());
+        node.setRed(!node.isRed());
         return node;
     }
 

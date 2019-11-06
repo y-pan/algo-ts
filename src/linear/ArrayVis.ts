@@ -34,8 +34,9 @@ export class ArrayVis<T> implements IVis {
         }
 
         this.clear();
-        this.resize(300, this.nodeSize);
-        this.data = this.data || [];
+        if (!this.data || this.data.length === 0) return;
+
+        this.resize((this.data.length + 1) * this.nodeSize * 2, this.nodeSize * 2);
         const self = this;
 
         if (this.svgGroup) {
@@ -63,14 +64,15 @@ export class ArrayVis<T> implements IVis {
                 .attr("x", (d: Nullable<T>, i: number) => this.rectX(d, i) + this.nodeSize / 3)
                 .attr("y", (d: Nullable<T>, i: number) => this.rectY(d, i) + this.nodeSize)
                 .attr("fill", this.getTextColor)
-                .attr("font-size", this.nodeSize);
+                .attr("font-size", this.nodeSize)
+                .attr("font-weight", "bold");
 
         }
     }
 
     resize(width: number, height: number): void {
-        if (this.svgGroup) {
-            this.svgGroup
+        if (this.svg) {
+            this.svg
                 .attr("width", width)
                 .attr("height", height);
         }
@@ -123,6 +125,6 @@ export class ArrayVis<T> implements IVis {
     }
 
     private getTextColor(d: Nullable<T>, i: number): string {
-        return "#ecee54";
+        return "#050505";
     }
 }

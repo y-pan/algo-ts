@@ -5,11 +5,15 @@ import {TreeStructLevel} from "../types/TreeStructLevelMapped";
 import {BaseTreeStructLevel} from "../types/TreeStructLevel";
 import {isNull} from "../../utils/util";
 import {Nullable} from "../../types/Nullable";
-import {Vis} from "../../types/Vis";
 import {BiFunc} from "../../types/BiFunc";
+import {ObjectVis} from "../../types/ObjectVis";
+import {Func} from "../../types/Func";
 
-export class TreeVis<T extends number | string> implements Vis<T> {
-    private array: Nullable<T>[] = [];
+export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
+
+    private nodes: Nullable<T>[] = [];
+    private keyExt: Func<Nullable<T>, Nullable<K>> | undefined;
+    private valExt: Func<Nullable<T>, Nullable<V>> | undefined;
     private nodeColorProvider: BiFunc<Nullable<T>, number, string> | undefined;
     private nodeSize: number = 15;
     private _vSpace: number = 5;
@@ -20,32 +24,41 @@ export class TreeVis<T extends number | string> implements Vis<T> {
     private svgGroup: any;
 
     constructor() {
-        this.array = [];
+        this.nodes = [];
         this.nodeSize = 15;
         this._vSpace = 5;
     }
 
-    withData(array: Nullable<T>[]): TreeVis<T> {
-        this.array = array;
+    withKeyExtractor(keyExt: Func<Nullable<T>, Nullable<K>>): TreeVis<T, K, V> {
+        this.keyExt = keyExt;
+        return this;
+    }
+    withValueExtractor(valExt: Func<Nullable<T>, Nullable<V>>): TreeVis<T, K, V> {
+        this.valExt = valExt;
         return this;
     }
 
-    withNodeColorProvider(colorProvider: BiFunc<Nullable<T>, number, string>): TreeVis<T> {
+    withData(array: Nullable<T>[]): TreeVis<T, K, V> {
+        this.nodes = array;
+        return this;
+    }
+
+    withNodeColorProvider(colorProvider: BiFunc<Nullable<T>, number, string>): TreeVis<T, K, V> {
         this.nodeColorProvider = colorProvider;
         return this;
     }
 
-    withNodeSize(nodeCircleRadius: number): TreeVis<T> {
+    withNodeSize(nodeCircleRadius: number): TreeVis<T, K, V> {
         nodeCircleRadius && (this.nodeSize = nodeCircleRadius);
         return this;
     }
 
-    vSpace(verticalLevelSpacing: number): TreeVis<T> {
+    vSpace(verticalLevelSpacing: number): TreeVis<T, K, V> {
         this._vSpace = verticalLevelSpacing;
         return this;
     }
 
-    withContainer(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis<T> {
+    withContainer(domElementOrFunc: HTMLElement | Supplier<HTMLElement>): TreeVis<T, K, V> {
         if (!this.svg) {
             const domContainer = (typeof domElementOrFunc === "function") ? domElementOrFunc() : domElementOrFunc;
             if (!domContainer) {
@@ -64,10 +77,10 @@ export class TreeVis<T extends number | string> implements Vis<T> {
 
     draw() {
         this.clear();
-        if (!this.array || this.array.length === 0) return;
+        if (!this.nodes || this.nodes.length === 0) return;
 
         // build tree structure from array _size
-        const treeStruct = new TreeStruct(this.array.length);// TreeStruct only cares about the _size, and make structure, not the actual values
+        const treeStruct = new TreeStruct(this.nodes.length);// TreeStruct only cares about the _size, and make structure, not the actual values
 
         // resize svg
         this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this.nodeSize + this._vSpace) * 2);
@@ -76,7 +89,7 @@ export class TreeVis<T extends number | string> implements Vis<T> {
         const mappedLevels: TreeStructLevel[] = [];
         treeStruct.forEachLevel((level) => {
             /*level : {height: height, indices: this.heightToIndices[height], capacity: this.getLevelCapacity(index)}*/
-            mappedLevels.push(this.mapLevel(level, this.array, treeStruct.getMaxLevelCapacity())); // map data ready to draw
+            mappedLevels.push(this.mapLevel(level, this.nodes, treeStruct.getMaxLevelCapacity())); // map data ready to draw
         });
 
         // draw nodes' connections (lines)
@@ -183,7 +196,8 @@ export class TreeVis<T extends number | string> implements Vis<T> {
             .attr("x", (d: any, i: number) => d.x)
             .attr("y", (d: any, i: number) => d.y)
             .attr("font-size", (d: any, i: number) => d.fontSize)
-            .attr("fill", "#fffa00");
+            .attr("fill", (d: any) => d.fill)
+            .attr("font-weight", "bold");
     }
 
     mapLevel(level: BaseTreeStructLevel, array: Nullable<T>[], maxLevelSize: number): TreeStructLevel {
@@ -208,26 +222,36 @@ export class TreeVis<T extends number | string> implements Vis<T> {
         const mappedLabels: TreeStructLevelNodeLabel[] = level.indices.map(i => array[i])
             .map((d, i) => {
                 return {
-                    text: (isNull(d) ? "" : String(d)),
+                    text: this.getText(d, i),
                     x: cx(d, i) - this.nodeSize / 2,
                     y: cy + this.nodeSize / 3,
                     fontSize: this.nodeSize,
-                    fill: "red"
+                    fill: "#ffffff"
                 }
             });
 
         return {...level, mappedNodes: mappedNodes, mappedLabels: mappedLabels};
     }
 
-    private getNodeColor(value: Nullable<T>, index: number): string {
-        if (this.nodeColorProvider) {
-            return this.nodeColorProvider(value, index);
-        }
-
-        // default setting
-        const baseColor = "#2140ff";
+    private getNodeColor(node: Nullable<T>, index: number): string {
         const emptyColor = "#cccccc";
-        return (isNull(value) || index >= this.array.length) ? emptyColor : baseColor;
+        if (!node) return emptyColor;
+        return this.nodeColorProvider ? this.nodeColorProvider(node, index) : emptyColor;
+    }
+
+    private getKey(node: Nullable<T>, index: number): Nullable<K> {
+        if (!node) return undefined;
+        return this.keyExt ? this.keyExt(node) : undefined;
+    }
+
+    private getValue(node: Nullable<T>, index: number): Nullable<V> {
+        if (!node) return undefined;
+        return this.valExt ? this.valExt(node) : undefined;
+    }
+
+    private getText(d: Nullable<T>, i: number): string {
+        let k = this.getKey(d, i);
+        return isNull(k) ? "" : String(k);
     }
 }
 
