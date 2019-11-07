@@ -1,15 +1,15 @@
 import {Nullable} from "../types/Nullable";
 import {BiFunc} from "../types/BiFunc";
-import {Func} from "../types/Func";
-import {IVis} from "../types/IVis";
 import * as d3 from "d3";
 import {isNull} from "../utils/util";
+import {Vis} from "../types/Vis";
+import {Supplier} from "../types/Supplier";
 
-export class ArrayVis<T> implements IVis {
+export class ArrayVis<T> implements Vis<T> {
 
     private data: Nullable<T>[] = [];
 
-    private container: undefined| Func<void, Nullable<HTMLElement>>;
+    private container: HTMLElement | Supplier<HTMLElement> | undefined;
     private svg: any;
     private svgGroup: any;
     private colorProvider: BiFunc<Nullable<T>, number, string> | undefined;
@@ -27,7 +27,12 @@ export class ArrayVis<T> implements IVis {
 
     draw(): void {
         if (!this.svg) {
-            let dom: Nullable<HTMLElement> = this.container ? this.container() : undefined;
+            let dom: Nullable<HTMLElement>;
+            if (this.container && typeof this.container === "function") {
+                dom = this.container();
+            } else {
+                dom = this.container;
+            }
             if (!dom) throw "Dom element is required.";
             this.svg = d3.select(dom).append("svg");
             this.svgGroup = this.svg.append("g");
@@ -73,7 +78,7 @@ export class ArrayVis<T> implements IVis {
         }
     }
 
-    withContainer(domeContainer: Func<void, Nullable<HTMLElement>>): ArrayVis<T> {
+    withContainer(domeContainer: HTMLElement | Supplier<HTMLElement>): ArrayVis<T> {
         this.container = domeContainer;
         return this;
     }

@@ -98,11 +98,10 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     }
 
     private renderArraySvg(): void {
-        if (!this.arraySvgContainer) {
-            return undefined;
+        if (this.arraySvgContainer) {
+            this.arrayVis.withContainer(this.arraySvgContainer)
+                .withData(this.array)
+                .draw();
         }
-        this.arrayVis.withContainer(() => this.arraySvgContainer)
-            .withData(this.array)
-            .draw();
     }
 }
