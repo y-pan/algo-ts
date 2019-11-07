@@ -16,13 +16,10 @@ interface TreeState {
 }
 
 export class TreeView extends React.Component<TreeProps, TreeState> {
-    // private readonly alphaTree = new RedBlackTree<string, string>();
     private readonly redBlackTree = new RedBlackTree<number, string>();
 
-    // private alphaTreeSvgContainer: Nullable<HTMLElement> = null;
     private redBlackTreeSvgContainer: Nullable<HTMLElement>;
 
-    // private alphaTreeVis: TreeVis<string> = new TreeVis();
     private redBlackTreeVis: TreeVis<IRedBlackTreeNode<number, string>, number, string> = new TreeVis();
     private arraySvgContainer: Nullable<HTMLElement>;
     private arrayVis: ArrayVis<number> = new ArrayVis();
@@ -41,12 +38,6 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             <button onClick={() => this.addRandom()}>Add Random</button>
         );
 
-        // const alphaSvgContainer = (
-            {/*<div id={"alpha-tree-svg-container"}*/}
-                 // ref={ref => this.alphaTreeSvgContainer = ref}>
-            // </div>
-        // );
-
         const arraySvgContainer = (
             <div id={"array-svg-container"} className={"svg-container"}
                  ref={ref => this.arraySvgContainer = ref}>
@@ -63,7 +54,6 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             <div>
                 {operations}
                 {arraySvgContainer}
-                {/*{alphaSvgContainer}*/}
                 {redBlackSvgContainer}
             </div>
         );
@@ -76,35 +66,15 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         this.array.push(key);
         this.redBlackTree.put(key, value);
         console.log("tree size: ", this.redBlackTree.getSize())
-        // const alphaKey: string = getRandomAlpha();
-        // const alphaValue: string = uniqueId(alphaKey);
-        // this.alphaTree.put(alphaKey, alphaValue);
-        //
-        // this.renderAlphaSvg();
+
         this.renderArraySvg();
         this.renderRedBlackSvg();
     }
-    //
-    // private renderAlphaSvg(): void {
-    //     if (this.alphaTreeSvgContainer) {
-    //         this.alphaTreeVis
-    //             .withNodeSize(10)
-    //             .withContainer(this.alphaTreeSvgContainer)
-    //             .withData(new TreeLevelScan(this.alphaTree).getFlatKeyArray()).draw();
-    //     }
-    // }
 
     private renderRedBlackSvg(): void {
         if (this.redBlackTreeSvgContainer) {
             let levels = new TreeLevelScan(this.redBlackTree);
-            // let nodes: Nullable<IRedBlackTreeNode<number, string>>[] = levels.getFlatNodeArray() as Nullable<IRedBlackTreeNode<number, string>>[];
 
-            // let colors: string[] = nodes.map(node => {
-            //     if (!node) return "#cccccc";
-            //     if (node && node.isRed()) return "#ff8392";
-            //     return "#7a7a7a";
-            // });
-            // console.log("colors", colors);
             this.redBlackTreeVis
                 .withNodeSize(10)
                 .withContainer(this.redBlackTreeSvgContainer)

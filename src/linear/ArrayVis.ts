@@ -50,12 +50,7 @@ export class ArrayVis<T> implements IVis {
                 .attr("height", this.nodeSize * 2)
                 .attr("fill", (d: Nullable<T>, i: number) => this.getNodeColor(d, i))
                 .attr("stroke", (d: Nullable<T>, i: number) => this.getBorderColor(d, i));
-                // .on("mouseover", function (d, i, rects) {
-                //     d3.select(this).style("stroke", "#53ff67");
-                // })
-                // .on("mouseout", function (d, i, rects) {
-                //     d3.select(this).transition(500).style("stroke", (d: Nullable<T>, i: number) => self.arrayRectBorderColor(d, i));
-                // });
+
 
             this.svgGroup.selectAll("text")
                 .data(this.data)
