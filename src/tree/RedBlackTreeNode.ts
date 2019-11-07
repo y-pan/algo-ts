@@ -1,81 +1,61 @@
-import {IRedBlackTreeNode} from "./types/IRedBlackTreeNode";
-import {Nullable} from "../types/Nullable";
+import {nlb} from "../types/Nullable";
+import {TreeNode} from "./TreeNode";
 
-type Node<K, V> = Nullable<IRedBlackTreeNode<K, V>>;
+type Node<K, V> = nlb<RedBlackTreeNode<K, V>>;
 
-export class RedBlackTreeNode<K, V> implements IRedBlackTreeNode<K, V> {
-    private readonly key: K;
-    protected val: V;
-    protected left: Node<K, V>;
-    protected right: Node<K, V>;
-    protected red: boolean;
-    protected _size: number = 0;
+export class RedBlackTreeNode<K, V> extends TreeNode<K, V> {
+    private static readonly RED = true;
+    private static readonly BLACK = false;
+    protected _color: boolean;
+    protected _left: Node<K, V>;
+    protected _right: Node<K, V>;
 
-    constructor(key: K, val: V) {
-        this.key = key;
-        this.val = val;
-        this._size = 1;
-        this.red = true;
+    constructor(key: K, val: V, size: number = 1) {
+        super(key, val, size);
+        this._color = RedBlackTreeNode.RED;
+    }
+
+    get left(): Node<K, V> {
+        return this._left;
+    }
+
+    get right(): Node<K, V> {
+        return this._right;
+    }
+
+    set left(left: Node<K, V>) {
+        this._left = left;
+    }
+
+    set right(right: Node<K, V>) {
+        this._right = right;
+    }
+
+    get color(): boolean {
+        return this._color;
+    }
+
+    set color(color: boolean) {
+        this._color = color;
     }
 
     isRed(): boolean {
-        return this.red;
+        return this._color === RedBlackTreeNode.RED;
     }
 
-    setRed(isRed: boolean): void {
-        this.red = isRed;
+    markRed(): void {
+        this._color = RedBlackTreeNode.RED;
     }
 
-    static isRed(node: Nullable<IRedBlackTreeNode<any, any>>): boolean {
-        return node ? node.isRed() : false;
+    markBlack(): void {
+        this._color = RedBlackTreeNode.BLACK;
     }
 
-    static isBlack(node: Nullable<IRedBlackTreeNode<any, any>>): boolean {
+    static isRed(node: nlb<RedBlackTreeNode<any, any>>): boolean {
+        return node ? node.color === RedBlackTreeNode.RED : false
+    }
+
+    static isBlack(node: nlb<RedBlackTreeNode<any, any>>): boolean {
         return !RedBlackTreeNode.isRed(node);
     }
-
-    static isLeftRed(node: Nullable<IRedBlackTreeNode<any, any>>): boolean {
-        return node ? RedBlackTreeNode.isRed(node.getLeft()) : false;
-    }
-
-    static isRightBlack(node: Nullable<IRedBlackTreeNode<any, any>>): boolean {
-        return !node
-    }
-
-    getKey(): K {
-        return this.key;
-    }
-
-    getLeft(): Node<K, V> {
-        return this.left;
-    }
-
-    getRight(): Node<K, V> {
-        return this.right;
-    }
-
-    getVal(): V {
-        return this.val;
-    }
-
-    setVal(val: V): void {
-        this.val = val;
-    }
-
-    setLeft(left: Node<K, V>): void {
-        this.left = left;
-    }
-
-    setRight(right: Node<K, V>): void {
-        this.right = right;
-    }
-
-    getSize(): number {
-        return this._size;
-    }
-
-    setSize(size: number): void {
-        this._size = size
-    }
-
 }

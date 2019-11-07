@@ -4,7 +4,7 @@ import {Nullable} from "../types/Nullable";
 import {TreeVis} from "../tree/vis/TreeVis";
 import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
-import {IRedBlackTreeNode} from "../tree/types/IRedBlackTreeNode";
+import {RedBlackTreeNode} from "../tree/RedBlackTreeNode";
 import {ArrayVis} from "../linear/ArrayVis";
 
 interface TreeProps {
@@ -20,7 +20,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
     private redBlackTreeSvgContainer: Nullable<HTMLElement>;
 
-    private redBlackTreeVis: TreeVis<IRedBlackTreeNode<number, string>, number, string> = new TreeVis();
+    private redBlackTreeVis: TreeVis<RedBlackTreeNode<number, string>, number, string> = new TreeVis();
     private arraySvgContainer: Nullable<HTMLElement>;
     private arrayVis: ArrayVis<number> = new ArrayVis();
     private array: Nullable<number>[] = [];
@@ -79,13 +79,13 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                 .withNodeSize(10)
                 .withContainer(this.redBlackTreeSvgContainer)
                 .withData(levels.getFlatNodeArray())
-                .withKeyExtractor((node: Nullable<IRedBlackTreeNode<number, string>>) => {
-                    return node == null ? undefined : node.getKey();
+                .withKeyExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+                    return node == null ? undefined : node.key;
                 })
-                .withValueExtractor((node: Nullable<IRedBlackTreeNode<number, string>>) => {
-                    return node == null ? "" : node.getVal();
+                .withValueExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+                    return node == null ? "" : node.value;
                 })
-                .withNodeColorProvider((node: Nullable<IRedBlackTreeNode<number, string>>, i: number) => {
+                .withNodeColorProvider((node: Nullable<RedBlackTreeNode<number, string>>, i: number) => {
                    if (!node) {
                        return "#ffffff";
                    } else if (node.isRed()) {
