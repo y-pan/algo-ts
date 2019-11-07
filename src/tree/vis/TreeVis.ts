@@ -1,6 +1,6 @@
 import {Supplier} from "../../types/Supplier";
 import * as d3 from "d3";
-import {TreeStruct} from "../processors/TreeStruct";
+import {TreeStruct} from "../processing/TreeStruct";
 import {TreeStructLevel} from "../types/TreeStructLevelMapped";
 import {BaseTreeStructLevel} from "../types/TreeStructLevel";
 import {isNull} from "../../utils/util";
@@ -127,7 +127,7 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         const lines: NodeConnection[] = [];
         for (let i = 0; i < level1.mappedNodes.length; i++) {
             const parent = level1.mappedNodes[i];
-            const isEmpty: boolean = level1.mappedNodes[i].empty;
+            const isParentEmpty: boolean = level1.mappedNodes[i].isEmpty;
             const leftChildIndex = i * 2, rightChildIndex = i * 2 + 1;
 
             if (leftChildIndex < level2.mappedNodes.length) {
@@ -137,7 +137,8 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
                     y1: parent.y,
                     x2: leftChild.x,
                     y2: leftChild.y,
-                    empty: isEmpty
+                    isParentEmpty: isParentEmpty,
+                    isChildEmpty: leftChild.isEmpty
                 });
 
                 if (rightChildIndex < level2.mappedNodes.length) {
@@ -147,7 +148,8 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
                         y1: parent.y,
                         x2: rightChild.x,
                         y2: rightChild.y,
-                        empty: isEmpty
+                        isParentEmpty: isParentEmpty,
+                        isChildEmpty: rightChild.isEmpty
                     });
                 }
             }
@@ -220,7 +222,7 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
                     r: this.nodeSize,
                     fill: this.getNodeColor(d, i),
                     stroke: "#ffffff",
-                    empty: Boolean(!d)
+                    isEmpty: Boolean(!d)
                 }
             });
 
@@ -264,7 +266,7 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
     }
 
     private getLineColor(line: NodeConnection, index: number): string {
-        if (line.empty) return "none";
+        if (line.isParentEmpty || line.isChildEmpty) return "none";
         return "#00ff55";
     }
 }
@@ -274,5 +276,6 @@ interface NodeConnection {
     y1: number;
     x2: number;
     y2: number;
-    empty: boolean;
+    isParentEmpty: boolean;
+    isChildEmpty: boolean;
 }

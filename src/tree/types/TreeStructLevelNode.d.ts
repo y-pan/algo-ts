@@ -4,5 +4,5 @@ interface TreeStructLevelNode {
     r: number; // radius, or _size
     fill: string;
     stroke: string;
-    empty: boolean;
+    isEmpty: boolean;
 }

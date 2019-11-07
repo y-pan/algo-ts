@@ -23,7 +23,7 @@ export class TreeLevelScan<K, V, N extends ITreeNode<K, V>> {
         const nextLevel: Nullable<N>[] = [];
         level.forEach(node => {
             if (!node) {
-                nextLevel.push(undefined, undefined); // we need to use "undefined" as placeholder to reserve the position even though they could be empty/null
+                nextLevel.push(undefined, undefined); // we need to use "undefined" as placeholder to reserve the position even though they could be isParentEmpty/null
             } else {
                 // @ts-ignore
                 nextLevel.push(node.getLeft(), node.getRight());

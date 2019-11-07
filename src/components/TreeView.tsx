@@ -2,7 +2,7 @@ import React from "react";
 import {uniqueId} from "../tree/util/TreeUtil";
 import {Nullable} from "../types/Nullable";
 import {TreeVis} from "../tree/vis/TreeVis";
-import {TreeLevelScan} from "../tree/processors/TreeLevelScan";
+import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
 import {IRedBlackTreeNode} from "../tree/types/IRedBlackTreeNode";
 import {ArrayVis} from "../linear/ArrayVis";

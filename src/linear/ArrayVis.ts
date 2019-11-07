@@ -111,7 +111,7 @@ export class ArrayVis<T> implements IVis {
             return this.colorProvider(d, index);
         }
         if (isNull(d) || index >= this.data.length) return "#cccccc";
-        return "#2c47ff";
+        return "#a2eeff";
     }
 
     private getBorderColor(d: Nullable<T>, i: number): string {
