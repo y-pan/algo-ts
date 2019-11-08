@@ -62,10 +62,10 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private addRandom(): void {
         const key: number = Math.floor(Math.random() * 100);
         const value: string = uniqueId(key);
-        console.log("AddRandom: ", key, value);
+        // console.log("AddRandom: ", key, value);
         this.array.push(key);
         this.redBlackTree.put(key, value);
-        console.log("tree size: ", this.redBlackTree.getSize())
+        // console.log("tree size: ", this.redBlackTree.getSize());
 
         this.renderArraySvg();
         this.renderRedBlackSvg();

@@ -8,8 +8,12 @@ import {Nullable} from "../../types/Nullable";
 import {BiFunc} from "../../types/BiFunc";
 import {ObjectVis} from "../../types/ObjectVis";
 import {Func} from "../../types/Func";
+import {TreeNodeLink} from "../types/TreeNodeLink";
+import {TreeStructLevelNodeLabel} from "../types/TreeStructLevelNodeLabel";
+import {TreeStructLevelNode} from "../types/TreeStructLevelNode";
 
-export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
+// T: object
+export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K, V> {
 
     private nodes: Nullable<T>[] = [];
     private keyExt: Func<Nullable<T>, Nullable<K>> | undefined;
@@ -124,32 +128,31 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
     }
 
     drawLevelConnections(level1: TreeStructLevel, level2: TreeStructLevel): void {
-        const lines: NodeConnection[] = [];
+        const lines: TreeNodeLink<K>[] = [];
         for (let i = 0; i < level1.mappedNodes.length; i++) {
             const parent = level1.mappedNodes[i];
-            const isParentEmpty: boolean = level1.mappedNodes[i].isEmpty;
             const leftChildIndex = i * 2, rightChildIndex = i * 2 + 1;
 
             if (leftChildIndex < level2.mappedNodes.length) {
                 let leftChild = level2.mappedNodes[leftChildIndex];
                 lines.push({
+                    key1: parent.key,
                     x1: parent.x,
                     y1: parent.y,
+                    key2: leftChild.key,
                     x2: leftChild.x,
                     y2: leftChild.y,
-                    isParentEmpty: isParentEmpty,
-                    isChildEmpty: leftChild.isEmpty
                 });
 
                 if (rightChildIndex < level2.mappedNodes.length) {
                     let rightChild = level2.mappedNodes[rightChildIndex];
                     lines.push({
+                        key1: parent.key,
                         x1: parent.x,
                         y1: parent.y,
+                        key2: rightChild.key,
                         x2: rightChild.x,
                         y2: rightChild.y,
-                        isParentEmpty: isParentEmpty,
-                        isChildEmpty: rightChild.isEmpty
                     });
                 }
             }
@@ -179,31 +182,45 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
             .data(mappedLevel.mappedNodes)
             .enter().append("circle")
             .attr("class", clas)
-            .attr("cx", (d: TreeStructLevelNode, i: number) => d.x)
-            .attr("cy", (d: TreeStructLevelNode, i: number) => d.y)
-            .attr("r", (d: TreeStructLevelNode, i: number) => d.r)
-            .attr("fill", (d: TreeStructLevelNode, i: number) => d.fill)
+            .attr("cx", (d: TreeStructLevelNode<K>, i: number) => d.x)
+            .attr("cy", (d: TreeStructLevelNode<K>, i: number) => d.y)
+            .attr("r", (d: TreeStructLevelNode<K>, i: number) => d.r)
+            .attr("fill", (d: TreeStructLevelNode<K>, i: number) => d.fill)
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 2)
-            .on("mouseover", function (d: TreeStructLevelNode, i: number, rects: any[]) {
-                // d3.select(d3.selectAll("text." + clas)._groups[0][i]).style("fill", "red")
+            .attr("cursor", "pointer")
+            // .attr("user-select", "none")
+            // .on("mouseover", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
+            //     // d3.select(d3.selectAll("text." + clas)._groups[0][i]).style("fill", "red")
+            //     // @ts-ignore
+            //     d3.select(this).style("fill", "#c303ff");
+            //
+            // })
+            // .on("mouseout", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
+            //     // @ts-ignore
+            //     d3.select(this).transition(500).style("fill", d.fill);
+            // })
+            .on("dblclick", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
+                d.key != null && console.log("delete node by key: ", d);
                 // @ts-ignore
-                d3.select(this).style("fill", "#c303ff");
-
-            })
-            .on("mouseout", function (d: TreeStructLevelNode, i: number, rects: any[]) {
-                // @ts-ignore
-                d3.select(this).transition(500).style("fill", d.fill);
+                // d3.select(this).transition(500).style("fill", d.fill);
             });
 
         this.svgGroup.selectAll("text." + clas)
             .data(mappedLevel.mappedLabels).enter().append("text").attr("class", clas)
-            .text((d: TreeStructLevelNodeLabel, i: number) => d.text)
-            .attr("x", (d: TreeStructLevelNodeLabel, i: number) => d.x)
-            .attr("y", (d: TreeStructLevelNodeLabel, i: number) => d.y)
-            .attr("font-size", (d: TreeStructLevelNodeLabel, i: number) => d.fontSize)
-            .attr("fill", (d: TreeStructLevelNodeLabel) => d.fill)
-            .attr("font-weight", "bold");
+            .text((d: TreeStructLevelNodeLabel<K>, i: number) => d.text)
+            .attr("x", (d: TreeStructLevelNodeLabel<K>, i: number) => d.x)
+            .attr("y", (d: TreeStructLevelNodeLabel<K>, i: number) => d.y)
+            .attr("font-size", (d: TreeStructLevelNodeLabel<K>, i: number) => d.fontSize)
+            .attr("fill", (d: TreeStructLevelNodeLabel<K>) => d.fill)
+            .attr("font-weight", "bold")
+            .attr("cursor", "pointer")
+            // .attr("user-select", "none")
+            .on("dblclick", function (d: TreeStructLevelNodeLabel<K>, i: number, rects: any[]) {
+                d.key != null && console.log("delete node by key: ", d);
+                // @ts-ignore
+                // d3.select(this).transition(500).style("fill", d.fill);
+            })
     }
 
     mapLevel(level: BaseTreeStructLevel, array: Nullable<T>[], maxLevelSize: number): TreeStructLevel {
@@ -214,21 +231,22 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         const cx = (d: Nullable<T>, i: number) => (i) * (this.nodeSize + deltaHSpace) * 2 + deltaHSpace;
         const cy = level.height * (this.nodeSize + this._vSpace) * 2;
 
-        const mappedNodes: TreeStructLevelNode[] = level.indices.map(i => array[i])
+        const mappedNodes: TreeStructLevelNode<K>[] = level.indices.map(i => array[i])
             .map((d: Nullable<T>, i) => {
                 return {
+                    key: this.getKey(d, i),
                     x: cx(d, i),
                     y: cy,
                     r: this.nodeSize,
                     fill: this.getNodeColor(d, i),
                     stroke: "#ffffff",
-                    isEmpty: Boolean(!d)
-                }
+                };
             });
 
-        const mappedLabels: TreeStructLevelNodeLabel[] = level.indices.map(i => array[i])
+        const mappedLabels: TreeStructLevelNodeLabel<K>[] = level.indices.map(i => array[i])
             .map((d: Nullable<T>, i: number) => {
                 return {
+                    key: this.getKey(d, i),
                     text: this.getText(d, i),
                     x: cx(d, i) - this.nodeSize / 2,
                     y: cy + this.nodeSize / 3,
@@ -265,17 +283,8 @@ export class TreeVis<T, K, V> implements ObjectVis<T, K, V> {
         return "#000000";
     }
 
-    private getLineColor(line: NodeConnection, index: number): string {
-        if (line.isParentEmpty || line.isChildEmpty) return "none";
+    private getLineColor(line: TreeNodeLink<K>, index: number): string {
+        if (isNull(line.key1) || isNull(line.key2)) return "none";
         return "#00ff55";
     }
-}
-
-interface NodeConnection {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    isParentEmpty: boolean;
-    isChildEmpty: boolean;
 }
