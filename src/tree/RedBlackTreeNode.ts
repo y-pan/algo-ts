@@ -51,11 +51,4 @@ export class RedBlackTreeNode<K, V> extends TreeNode<K, V> {
         this._color = RedBlackTreeNode.BLACK;
     }
 
-    static isRed(node: nlb<RedBlackTreeNode<any, any>>): boolean {
-        return node ? node.color === RedBlackTreeNode.RED : false
-    }
-
-    static isBlack(node: nlb<RedBlackTreeNode<any, any>>): boolean {
-        return !RedBlackTreeNode.isRed(node);
-    }
 }

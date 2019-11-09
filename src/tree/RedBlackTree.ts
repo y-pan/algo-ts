@@ -1,6 +1,7 @@
 import {IRedBlackTree} from "./types/IRedBlackTree";
 import {RedBlackTreeNode} from "./RedBlackTreeNode";
 import {nlb} from "../types/Nullable";
+import {isBlack, isRed} from "./util/TreeUtil";
 
 type Node<K, V> = nlb<RedBlackTreeNode<K, V>>;
 
@@ -74,8 +75,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
             node.value = val;
         }
 
-        if (RedBlackTreeNode.isBlack(node.left) &&
-            RedBlackTreeNode.isRed(node.right)) {
+        if (isBlack(node.left) &&
+            isRed(node.right)) {
             node = this.rotateLeft(node);
         }
 
@@ -105,8 +106,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         const x = node.left;
         const leftLeft = x ? x.left : undefined;
 
-        if (RedBlackTreeNode.isBlack(x)) throw "rotateRight: _left child is expected to be _color";
-        if (!x || RedBlackTreeNode.isBlack(leftLeft)) throw "rotateRight: _left child's _left is expected to be _color";
+        if (isBlack(x)) throw "rotateRight: _left child is expected to be _color";
+        if (!x || isBlack(leftLeft)) throw "rotateRight: _left child's _left is expected to be _color";
 
         node.left = x.right;
         x.right = node;
@@ -125,8 +126,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
         const x = node.right;
 
-        if (RedBlackTreeNode.isRed(node.left)) throw "rotateLeft: _left child is expected to be black";
-        if (!x || RedBlackTreeNode.isBlack(node.right)) throw "rotateLeft: _right child is expected to be _color";
+        if (isRed(node.left)) throw "rotateLeft: _left child is expected to be black";
+        if (!x || isBlack(node.right)) throw "rotateLeft: _right child is expected to be _color";
 
         node.right = x.left;
         x.left = node;
@@ -143,12 +144,12 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         console.info("flipColors", node);
 
         if (!node) throw "Node is required";
-        // if (RedBlackTreeNode.isBlack(node)) throw "flip colors: node is expected to be black";
+        // if (isBlack(node)) throw "flip colors: node is expected to be black";
 
         const left = node.left;
         const right = node.right;
 
-        // if (RedBlackTreeNode.isBlack(_left) || RedBlackTreeNode.isBlack(_right)) throw "flip colors: both children are expected to be _color";
+        // if (isBlack(_left) || isBlack(_right)) throw "flip colors: both children are expected to be _color";
 
         left && (left.color = !left.color);
         right && (right.color = !right.color);
