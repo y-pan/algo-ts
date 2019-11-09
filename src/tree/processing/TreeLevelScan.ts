@@ -1,13 +1,14 @@
 import {nlb} from "../../types/Nullable";
 import {ITree} from "../types/ITree";
 import {TreeNode} from "../TreeNode";
+import {requireNonNull} from "../../utils/Type";
 
 export class TreeLevelScan<K, V, N extends TreeNode<K, V>> {
     private readonly rootNote: nlb<N>;
     private readonly levels: nlb<N>[][];
 
     constructor(tree: ITree<K, V, N>) {
-        if (!tree) throw "Tree is required";
+        requireNonNull(tree, "Tree is required");
         this.rootNote = tree.getRoot();
         this.levels = []; // all levels of nodes
         const currentLevel: nlb<N>[] = [];// first level has the _root node only

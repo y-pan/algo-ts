@@ -6,6 +6,7 @@ import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
 import {RedBlackTreeNode} from "../tree/RedBlackTreeNode";
 import {ArrayVis} from "../linear/ArrayVis";
+import {requireNonNull} from "../utils/Type";
 
 interface TreeProps {
 
@@ -165,30 +166,24 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
     // Rendering svg to given dom
     private renderRedBlackSvg(): void {
-        if (this.treeSvgContainer) {
-            this.redBlackTreeVis
-                .withContainer(this.treeSvgContainer)
-                .withData(
-                    new TreeLevelScan(this.redBlackTree).getFlatNodeArray()
-                )
-                .draw();
-        }
+        this.redBlackTreeVis
+            .withContainer(requireNonNull(this.treeSvgContainer))
+            .withData(
+                new TreeLevelScan(this.redBlackTree).getFlatNodeArray()
+            )
+            .draw();
     }
 
     private renderArraySvg(): void {
-        if (this.inputArraySvgContainer) {
-            this.inputArrayVis
-                .withContainer(this.inputArraySvgContainer)
-                .withData(this.inputArray)
-                .draw();
-        }
+        this.inputArrayVis
+            .withContainer(requireNonNull(this.inputArraySvgContainer))
+            .withData(this.inputArray)
+            .draw();
     }
 
     private renderDeletionArraySvg() {
-        if (this.deletionArraySvgContainer) {
-            this.deletionArrayVis.withContainer(this.deletionArraySvgContainer)
-                .withData(this.deletionArray)
-                .draw();
-        }
+        this.deletionArrayVis.withContainer(requireNonNull(this.deletionArraySvgContainer))
+            .withData(this.deletionArray)
+            .draw();
     }
 }
