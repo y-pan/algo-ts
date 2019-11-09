@@ -3,7 +3,7 @@ import {nlb} from "../types/Nullable";
 type Node<K, V> = nlb<TreeNode<K, V>>;
 
 export abstract class TreeNode<K, V> {
-    protected readonly _key: K;
+    protected _key: K;
     protected _value: nlb<V>;
     protected _left: Node<K, V>;
     protected _right: Node<K, V>;
@@ -17,6 +17,11 @@ export abstract class TreeNode<K, V> {
 
     get key(): K {
         return this._key;
+    }
+
+    set key(k: K) {
+        console.warn("Set Key: ", k);
+        this._key = k;
     }
 
     get left(): Node<K, V> {

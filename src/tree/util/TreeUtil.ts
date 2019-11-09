@@ -17,7 +17,7 @@ export function bstWidth(tSize: number, fullWidth: boolean = true): number {
     return fullWidth ? (2 ** bstHeight(tSize)) : ((tSize + 1) / 2);
 }
 
-export function uniqueId(prefix: string | number): string {
+export function uniqueId(prefix: string | number = "default"): string {
     prefix = isNull(prefix) ? "default" : String(prefix);
     const count: number = (KEY_COUNTER[prefix] || 0) + 1;
     const key: string = `${prefix}-${count}`;

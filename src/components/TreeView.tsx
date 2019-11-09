@@ -1,6 +1,6 @@
 import React from "react";
 import {uniqueId} from "../tree/util/TreeUtil";
-import {Nullable} from "../types/Nullable";
+import {nlb, Nullable} from "../types/Nullable";
 import {TreeVis} from "../tree/vis/TreeVis";
 import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
@@ -12,49 +12,92 @@ interface TreeProps {
 }
 
 interface TreeState {
-
+    deleteDisabled: boolean;
 }
 
 export class TreeView extends React.Component<TreeProps, TreeState> {
     private readonly redBlackTree = new RedBlackTree<number, string>();
+    private readonly redBlackTreeVis: TreeVis<RedBlackTreeNode<number, string>, number, string> = new TreeVis();
+    private treeSvgContainer: Nullable<HTMLElement>;
 
-    private redBlackTreeSvgContainer: Nullable<HTMLElement>;
+    private inputArray: Nullable<number>[] = [];
+    private readonly inputArrayVis: ArrayVis<number> = new ArrayVis();
+    private inputArraySvgContainer: Nullable<HTMLElement>;
 
-    private redBlackTreeVis: TreeVis<RedBlackTreeNode<number, string>, number, string> = new TreeVis();
-    private arraySvgContainer: Nullable<HTMLElement>;
-    private arrayVis: ArrayVis<number> = new ArrayVis();
-    private array: Nullable<number>[] = [];
+    private readonly deletionArray: Nullable<number>[] = [];
+    private readonly deletionArrayVis: ArrayVis<number> = new ArrayVis();
+    private deletionArraySvgContainer: Nullable<HTMLElement>;
 
     constructor(props: TreeProps) {
         super(props);
-        (window as any)["tree"] = this.redBlackTree;
+        (window as any)["treeSvgContainer"] = this.redBlackTree;
         (window as any)["vis"] = this.redBlackTreeVis;
-        this.redBlackTreeVis.subscribeNodeDoubleClick((k: number) => this.delete(k))
+
+        this.redBlackTreeVis
+            .withNodeSize(10)
+            // .withContainer(this.treeSvgContainer)
+            // .withData(levels.getFlatNodeArray())
+            .withKeyExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+                return node == null ? undefined : node.key;
+            })
+            .withValueExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+                return node == null ? "" : node.value;
+            })
+            .withNodeColorProvider((node: Nullable<RedBlackTreeNode<number, string>>, i: number) => {
+                if (!node) {
+                    return "#ffffff";
+                } else if (node.isRed()) {
+                    return "#ff7f84";
+                } else {
+                    return "#b7b5bc";
+                }
+            });
+
+        this.redBlackTreeVis.subscribeNodeDoubleClick((k: number) => this.delete(k));
+        this.deletionArrayVis
+            .withNodeColorProvider(() => "#ecee54")
+            .withNodeTextColor(() => "#b00fec")
+            .withNodeSize(10);
+
+        this.state = {
+            deleteDisabled: true
+        }
     }
 
     render(): JSX.Element {
 
-        const operations = (
-            <button onClick={() => this.addRandom()}>Add Random</button>
+        const operations: JSX.Element[] = (
+            [
+                <button key={"add-random"} onClick={() => this.addRandom()}>Add Random</button>,
+                <button key={"delete-min"} onClick={() => this.deleteMin()} disabled={this.state.deleteDisabled}>Delete
+                    Min</button>
+            ]
         );
 
-        const arraySvgContainer = (
-            <div id={"array-svg-container"} className={"svg-container"}
-                 ref={ref => this.arraySvgContainer = ref}>
+        const inputArraySvg = (
+            <div key={"input-array-svg"} className={"svg-container"}
+                 ref={ref => this.inputArraySvgContainer = ref}>
             </div>
         );
 
-        const redBlackSvgContainer = (
-            <div id={"red-black-tree-svg-container"} className={"svg-container"}
-                 ref={ref => this.redBlackTreeSvgContainer = ref}>
+        const deletionArraySvg = (
+            <div key={"deleteion-array-svg"} className={"svg-container"}
+                 ref={ref => this.deletionArraySvgContainer = ref}>
+            </div>
+        );
+
+        const treeSvg = (
+            <div key={"tree-svg"} className={"svg-container"}
+                 ref={ref => this.treeSvgContainer = ref}>
             </div>
         );
 
         return (
             <div>
                 {operations}
-                {arraySvgContainer}
-                {redBlackSvgContainer}
+                {inputArraySvg}
+                {deletionArraySvg}
+                {treeSvg}
             </div>
         );
     }
@@ -62,45 +105,34 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private addRandom(): void {
         const key: number = Math.floor(Math.random() * 100);
         const value: string = uniqueId(key);
-        // console.log("AddRandom: ", key, value);
-        this.array.push(key);
+        console.log("AddRandom: ", key, value);
+        this.inputArray.push(key);
         this.redBlackTree.put(key, value);
-        // console.log("tree size: ", this.redBlackTree.getSize());
 
         this.renderArraySvg();
         this.renderRedBlackSvg();
+
+        this.setState({
+            deleteDisabled: this.redBlackTree.isEmpty()
+        });
     }
 
     private renderRedBlackSvg(): void {
-        if (this.redBlackTreeSvgContainer) {
-            let levels = new TreeLevelScan(this.redBlackTree);
-
+        if (this.treeSvgContainer) {
             this.redBlackTreeVis
-                .withNodeSize(10)
-                .withContainer(this.redBlackTreeSvgContainer)
-                .withData(levels.getFlatNodeArray())
-                .withKeyExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
-                    return node == null ? undefined : node.key;
-                })
-                .withValueExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
-                    return node == null ? "" : node.value;
-                })
-                .withNodeColorProvider((node: Nullable<RedBlackTreeNode<number, string>>, i: number) => {
-                   if (!node) {
-                       return "#ffffff";
-                   } else if (node.isRed()) {
-                       return "#ff7f84";
-                   } else {
-                       return "#b7b5bc";
-                   }
-                }).draw();
+                .withContainer(this.treeSvgContainer)
+                .withData(
+                    new TreeLevelScan(this.redBlackTree).getFlatNodeArray()
+                )
+                .draw();
         }
     }
 
     private renderArraySvg(): void {
-        if (this.arraySvgContainer) {
-            this.arrayVis.withContainer(this.arraySvgContainer)
-                .withData(this.array)
+        if (this.inputArraySvgContainer) {
+            this.inputArrayVis
+                .withContainer(this.inputArraySvgContainer)
+                .withData(this.inputArray)
                 .draw();
         }
     }
@@ -108,12 +140,36 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private delete(key: number): void {
         const deleted = this.redBlackTree.delete(key);
         if (deleted != null) {
-            console.log("deleted: ", deleted);
-
-            this.array = this.array.filter(num => num !== key);
+            this.inputArray = this.inputArray.filter(num => num !== key);
             this.renderArraySvg();
             this.renderRedBlackSvg();
         }
+
+        this.setState({
+            deleteDisabled: this.redBlackTree.isEmpty()
+        });
     }
 
+    private deleteMin(): void {
+        const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMin();
+        if (deleted != null) {
+            this.inputArray = this.inputArray.filter(num => num !== deleted.key);
+            this.deletionArray.push(deleted.key);
+            this.renderArraySvg();
+            this.renderRedBlackSvg();
+            this.renderDeletionArraySvg();
+        }
+
+        this.setState({
+            deleteDisabled: this.redBlackTree.isEmpty()
+        });
+    }
+
+    private renderDeletionArraySvg() {
+        if (this.deletionArraySvgContainer) {
+            this.deletionArrayVis.withContainer(this.deletionArraySvgContainer)
+                .withData(this.deletionArray)
+                .draw();
+        }
+    }
 }

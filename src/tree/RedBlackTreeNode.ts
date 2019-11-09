@@ -10,7 +10,7 @@ export class RedBlackTreeNode<K, V> extends TreeNode<K, V> {
     protected _left: Node<K, V>;
     protected _right: Node<K, V>;
 
-    constructor(key: K, val: V, size: number = 1) {
+    constructor(key: K, val: nlb<V>, size: number = 1) {
         super(key, val, size);
         this._color = RedBlackTreeNode.RED;
     }
@@ -49,6 +49,19 @@ export class RedBlackTreeNode<K, V> extends TreeNode<K, V> {
 
     markBlack(): void {
         this._color = RedBlackTreeNode.BLACK;
+    }
+
+    copy(): RedBlackTreeNode<K, V> {
+        const cp = new RedBlackTreeNode<K, V>(this._key, this._value, this._size);
+        cp.color = this.color;
+        return cp;
+    }
+
+    clone(): RedBlackTreeNode<K, V> {
+        const cl = this.copy();
+        cl.left = this.left;
+        cl.right = this.right;
+        return cl;
     }
 
 }

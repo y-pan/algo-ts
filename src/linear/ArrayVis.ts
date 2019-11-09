@@ -1,4 +1,4 @@
-import {Nullable} from "../types/Nullable";
+import {nlb} from "../types/Nullable";
 import {BiFunc} from "../types/BiFunc";
 import * as d3 from "d3";
 import {isNull} from "../utils/util";
@@ -7,13 +7,15 @@ import {Supplier} from "../types/Supplier";
 
 export class ArrayVis<T> implements Vis<T> {
 
-    private data: Nullable<T>[] = [];
+    private data: nlb<T>[] = [];
 
     private container: HTMLElement | Supplier<HTMLElement> | undefined;
     private svg: any;
     private svgGroup: any;
-    private colorProvider: BiFunc<Nullable<T>, number, string> | undefined;
+    private nodeColorProvider: BiFunc<nlb<T>, number, string> | undefined;
     private nodeSize: number = 10;
+    private nodeTextProvider: BiFunc<nlb<T>, number, string> | undefined;
+    private nodeTextColorProvider: BiFunc<nlb<T>, number, string> | undefined;
 
     constructor() {
     }
@@ -27,7 +29,7 @@ export class ArrayVis<T> implements Vis<T> {
 
     draw(): void {
         if (!this.svg) {
-            let dom: Nullable<HTMLElement>;
+            let dom: nlb<HTMLElement>;
             if (this.container && typeof this.container === "function") {
                 dom = this.container();
             } else {
@@ -49,21 +51,21 @@ export class ArrayVis<T> implements Vis<T> {
                 .data(this.data)
                 .enter().append("rect")
                 .attr("class", "heap-array-rect")
-                .attr("x", (d: Nullable<T>, i: number) => self.rectX(d, i))
-                .attr("y", (d: Nullable<T>, i: number) => self.rectY(d, i))
+                .attr("x", (d: nlb<T>, i: number) => self.rectX(d, i))
+                .attr("y", (d: nlb<T>, i: number) => self.rectY(d, i))
                 .attr("width", this.nodeSize * 2)
                 .attr("height", this.nodeSize * 2)
-                .attr("fill", (d: Nullable<T>, i: number) => this.getNodeColor(d, i))
-                .attr("stroke", (d: Nullable<T>, i: number) => this.getBorderColor(d, i));
+                .attr("fill", (d: nlb<T>, i: number) => this.getNodeColor(d, i))
+                .attr("stroke", (d: nlb<T>, i: number) => this.getBorderColor(d, i));
 
 
             this.svgGroup.selectAll("text")
                 .data(this.data)
                 .enter().append("text")
-                .text((d: Nullable<T>, i: number) => this.getText(d, i))
-                .attr("x", (d: Nullable<T>, i: number) => this.rectX(d, i) + this.nodeSize / 3)
-                .attr("y", (d: Nullable<T>, i: number) => this.rectY(d, i) + this.nodeSize)
-                .attr("fill", this.getTextColor)
+                .text((d: nlb<T>, i: number) => this.getText(d, i))
+                .attr("x", (d: nlb<T>, i: number) => this.rectX(d, i) + this.nodeSize / 3)
+                .attr("y", (d: nlb<T>, i: number) => this.rectY(d, i) + this.nodeSize)
+                .attr("fill", (d: nlb<T>, i: number) => this.getTextColor(d, i))
                 .attr("font-size", this.nodeSize)
                 .attr("font-weight", "bold");
 
@@ -83,13 +85,13 @@ export class ArrayVis<T> implements Vis<T> {
         return this;
     }
 
-    withData(data: Nullable<T>[]): ArrayVis<T> {
+    withData(data: nlb<T>[]): ArrayVis<T> {
         this.data = data;
         return this;
     }
 
-    withNodeColorProvider(colorProvider: (d: Nullable<T>, index: number) => string): ArrayVis<T> {
-        this.colorProvider = colorProvider;
+    withNodeColorProvider(colorProvider: (d: nlb<T>, index: number) => string): ArrayVis<T> {
+        this.nodeColorProvider = colorProvider;
         return this;
     }
 
@@ -97,34 +99,51 @@ export class ArrayVis<T> implements Vis<T> {
         this.nodeSize = size;
         return this;
     }
-    
-    rectX(d: Nullable<T>, i: number): number {
+
+    withNodeText(textProvider: BiFunc<nlb<T>, number, string>): Vis<T> {
+        this.nodeTextProvider = textProvider;
+        return this;
+    }
+
+    withNodeTextColor(textColorProvider: BiFunc<nlb<T>, number, string>): Vis<T> {
+        this.nodeTextColorProvider = textColorProvider;
+        return this;
+    }
+
+    private rectX(d: nlb<T>, i: number): number {
         return this.nodeSize * 2 * i;
     }
 
-    rectY(d: Nullable<T>, i: number): number {
+    private rectY(d: nlb<T>, i: number): number {
         return 0;
     }
 
-    private getNodeColor(d: Nullable<T>, index: number): string {
-        if (this.colorProvider) {
-            return this.colorProvider(d, index);
+    private getNodeColor(d: nlb<T>, index: number): string {
+        if (this.nodeColorProvider) {
+            return this.nodeColorProvider(d, index);
         }
         if (isNull(d) || index >= this.data.length) return "#cccccc";
         return "#a2eeff";
     }
 
-    private getBorderColor(d: Nullable<T>, i: number): string {
-        if (isNull(d) || i >= this.data.length) return "#777777";
-        return "#000070";
+    private getBorderColor(d: nlb<T>, i: number): string {
+        let color: string = "#000070";
+        if (isNull(d) || i >= this.data.length) {
+            color = "#777777";
+        }
+        return color;
     }
 
-    private getText(d: Nullable<T>, i: number): string {
+    private getText(d: nlb<T>, i: number): string {
         if (isNull(d)) return "";
         return String(d);
     }
 
-    private getTextColor(d: Nullable<T>, i: number): string {
-        return "#050505";
+    private getTextColor(d: nlb<T>, i: number): string {
+        let color: string = "#050505";
+        if (this.nodeTextColorProvider) {
+            color = this.nodeTextColorProvider(d, i);
+        }
+        return color;
     }
 }

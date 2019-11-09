@@ -13,11 +13,14 @@ export interface ITree<K, V, N extends TreeNode<K, V>> {
     isEmpty(): boolean;
 
     //TODO:
-    rank?(): number;
+    rank?(key: nlb<K>): number; // num of keys, which < key
+    select?(rank: number): nlb<K>; // get the key, whose has that rank
     floor?(): number;
     ceiling?(): number;
 
     delete(key: K): nlb<N>;
-    deleteMin?(): void;
-    deleteMax?(): void;
+
+    deleteMin?(): nlb<N>;
+
+    deleteMax?(): nlb<N>;
 }
