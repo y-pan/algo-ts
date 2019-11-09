@@ -1,6 +1,6 @@
 import React from "react";
 import {uniqueId} from "../tree/util/TreeUtil";
-import {nlb, Nullable} from "../types/Nullable";
+import {nlb} from "../types/Nullable";
 import {TreeVis} from "../tree/vis/TreeVis";
 import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
@@ -19,15 +19,15 @@ interface TreeState {
 export class TreeView extends React.Component<TreeProps, TreeState> {
     private readonly redBlackTree = new RedBlackTree<number, string>();
     private readonly redBlackTreeVis: TreeVis<RedBlackTreeNode<number, string>, number, string> = new TreeVis();
-    private treeSvgContainer: Nullable<HTMLElement>;
+    private treeSvgContainer: nlb<HTMLElement>;
 
-    private inputArray: Nullable<number>[] = [];
+    private inputArray: nlb<number>[] = [];
     private readonly inputArrayVis: ArrayVis<number> = new ArrayVis();
-    private inputArraySvgContainer: Nullable<HTMLElement>;
+    private inputArraySvgContainer: nlb<HTMLElement>;
 
-    private readonly deletionArray: Nullable<number>[] = [];
+    private readonly deletionArray: nlb<number>[] = [];
     private readonly deletionArrayVis: ArrayVis<number> = new ArrayVis();
-    private deletionArraySvgContainer: Nullable<HTMLElement>;
+    private deletionArraySvgContainer: nlb<HTMLElement>;
 
     constructor(props: TreeProps) {
         super(props);
@@ -38,13 +38,13 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             .withNodeSize(10)
             // .withContainer(this.treeSvgContainer)
             // .withData(levels.getFlatNodeArray())
-            .withKeyExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+            .withKeyExtractor((node: nlb<RedBlackTreeNode<number, string>>) => {
                 return node == null ? undefined : node.key;
             })
-            .withValueExtractor((node: Nullable<RedBlackTreeNode<number, string>>) => {
+            .withValueExtractor((node: nlb<RedBlackTreeNode<number, string>>) => {
                 return node == null ? "" : node.value;
             })
-            .withNodeColorProvider((node: Nullable<RedBlackTreeNode<number, string>>, i: number) => {
+            .withNodeColorProvider((node: nlb<RedBlackTreeNode<number, string>>, i: number) => {
                 if (!node) {
                     return "#ffffff";
                 } else if (node.isRed()) {
