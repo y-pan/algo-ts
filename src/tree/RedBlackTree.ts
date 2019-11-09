@@ -173,10 +173,19 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         return node;
     }
 
+    deleteMax(): Node<K, V> {
+        // TODO: balance after deletion
+        if (!this._root) throw `Tree underflow.`;
+        if (!isRed(this._root.left) && !isRed(this._root.right)) this._root.markRed();
+        const bin: Node<K, V>[] = [];
+        this._root = this.deleteMaxFrom(this._root, bin);
+        this._root && this._root.markBlack();
+        return bin.length > 0 ? bin[0] : null;
+    }
+
     deleteMin(): Node<K, V> {
         //TODO: balance after deletion
-
-        if (!this._root) throw `No such elemetn`;
+        if (!this._root) throw `Tree underflow.`;
         if (!isRed(this._root.left) && !isRed(this._root.right)) this._root.markRed();
         const bin: Node<K, V>[] = [];
         this._root = this.deleteMinFrom(this._root, bin);
@@ -185,9 +194,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     }
 
     private deleteMinFrom(h: Node<K, V>, bin: Node<K, V>[]): Node<K, V> {
-        if (!h) {
-            throw `Unexpected null argument for deleteMinFrom()`;
-        }
+        if (!h) throw `Unexpected null argument for deleteMinFrom()`;
         if (!h.left) {
             bin.push(h.copy());
             return h.right;
@@ -196,6 +203,18 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
         h.left = this.deleteMinFrom(h.left, bin);
         // return this.balance(h);
+        return h;
+    }
+
+    private deleteMaxFrom(h: Node<K, V>, bin: Node<K, V>[]): Node<K, V> {
+        if (!h) throw `Unexpected null argument for deleteMaxFrom()`;
+        if (!h.right) {
+            bin.push(h.copy());
+            return h.left;
+        }
+
+        h.right = this.deleteMaxFrom(h.right, bin);
+        // balance ?
         return h;
     }
 

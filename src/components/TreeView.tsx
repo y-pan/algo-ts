@@ -68,9 +68,24 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
         const operations: JSX.Element[] = (
             [
-                <button key={"add-random"} onClick={() => this.addRandom()}>Add Random</button>,
-                <button key={"delete-min"} onClick={() => this.deleteMin()} disabled={this.state.deleteDisabled}>Delete
-                    Min</button>
+                <button key={"add-random"}
+                        onClick={() => this.addRandom()}>
+                    Add Random
+                </button>,
+
+                <button key={"delete-min"}
+                        onClick={() => this.deleteMin()}
+                        disabled={this.state.deleteDisabled}>
+                    Delete Min
+                </button>,
+
+                <button key={"delete-max"}
+                        onClick={() => this.deleteMax()}
+                        disabled={this.state.deleteDisabled}>
+                    Delete Max
+                </button>
+
+
             ]
         );
 
@@ -102,13 +117,32 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         );
     }
 
+    // Operations
     private addRandom(): void {
         const key: number = Math.floor(Math.random() * 100);
         const value: string = uniqueId(key);
-        console.log("AddRandom: ", key, value);
         this.inputArray.push(key);
         this.redBlackTree.put(key, value);
+        this.afterAdd();
+    }
 
+    private delete(key: number): void {
+        const deleted = this.redBlackTree.delete(key);
+        deleted && this.afterDeletion(deleted);
+    }
+
+    private deleteMin(): void {
+        const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMin();
+        deleted && this.afterDeletion(deleted);
+    }
+
+    private deleteMax() {
+        const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMax();
+        deleted && this.afterDeletion(deleted);
+    }
+
+    // Do after operations
+    private afterAdd(): void {
         this.renderArraySvg();
         this.renderRedBlackSvg();
 
@@ -117,6 +151,19 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         });
     }
 
+    private afterDeletion(deleted: RedBlackTreeNode<number, string>): void {
+        this.inputArray = this.inputArray.filter(num => num !== deleted.key);
+        this.deletionArray.push(deleted.key);
+        this.renderArraySvg();
+        this.renderRedBlackSvg();
+        this.renderDeletionArraySvg();
+
+        this.setState({
+            deleteDisabled: this.redBlackTree.isEmpty()
+        });
+    }
+
+    // Rendering svg to given dom
     private renderRedBlackSvg(): void {
         if (this.treeSvgContainer) {
             this.redBlackTreeVis
@@ -135,34 +182,6 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                 .withData(this.inputArray)
                 .draw();
         }
-    }
-
-    private delete(key: number): void {
-        const deleted = this.redBlackTree.delete(key);
-        if (deleted != null) {
-            this.inputArray = this.inputArray.filter(num => num !== key);
-            this.renderArraySvg();
-            this.renderRedBlackSvg();
-        }
-
-        this.setState({
-            deleteDisabled: this.redBlackTree.isEmpty()
-        });
-    }
-
-    private deleteMin(): void {
-        const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMin();
-        if (deleted != null) {
-            this.inputArray = this.inputArray.filter(num => num !== deleted.key);
-            this.deletionArray.push(deleted.key);
-            this.renderArraySvg();
-            this.renderRedBlackSvg();
-            this.renderDeletionArraySvg();
-        }
-
-        this.setState({
-            deleteDisabled: this.redBlackTree.isEmpty()
-        });
     }
 
     private renderDeletionArraySvg() {
