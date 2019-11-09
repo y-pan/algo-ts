@@ -11,6 +11,8 @@ import {Func} from "../../types/Func";
 import {TreeNodeLink} from "../types/TreeNodeLink";
 import {TreeStructLevelNodeLabel} from "../types/TreeStructLevelNodeLabel";
 import {TreeStructLevelNode} from "../types/TreeStructLevelNode";
+import {Consumer} from "../../types/Consumer";
+import {EventPublisher} from "../../event/EventPublisher";
 
 // T: object
 export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K, V> {
@@ -27,10 +29,20 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
     private svg: any;
     private svgGroup: any;
 
+    private readonly nodeDoubleClickPublisher: EventPublisher<K> = new EventPublisher();
+
     constructor() {
         this.nodes = [];
         this.nodeSize = 15;
         this._vSpace = 5;
+    }
+
+    subscribeNodeDoubleClick(consumer: Consumer<K>): void {
+        this.nodeDoubleClickPublisher.subscribe(consumer);
+    }
+
+    private publishNodeDoubleClick(key: K): void {
+        this.nodeDoubleClickPublisher.publish(key);
     }
 
     withKeyExtractor(keyExt: Func<Nullable<T>, Nullable<K>>): TreeVis<T, K, V> {
@@ -177,6 +189,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
         if (!mappedLevel.hasOwnProperty("mappedNodes") || !mappedLevel.hasOwnProperty("mappedLabels")) {
             throw new Error("Property required: mappedNodes & mappedLabels");
         }
+        const self = this;
         const clas = "level-" + mappedLevel.height;
         this.svgGroup.selectAll("circle." + clas)
             .data(mappedLevel.mappedNodes)
@@ -189,20 +202,8 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 2)
             .attr("cursor", "pointer")
-            // .attr("user-select", "none")
-            // .on("mouseover", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
-            //     // d3.select(d3.selectAll("text." + clas)._groups[0][i]).style("fill", "red")
-            //     // @ts-ignore
-            //     d3.select(this).style("fill", "#c303ff");
-            //
-            // })
-            // .on("mouseout", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
-            //     // @ts-ignore
-            //     d3.select(this).transition(500).style("fill", d.fill);
-            // })
             .on("dblclick", function (d: TreeStructLevelNode<K>, i: number, rects: any[]) {
-                d.key != null && console.log("delete node by key: ", d);
-                // @ts-ignore
+                d.key != null && self.nodeDoubleClickPublisher.publish(d.key);
                 // d3.select(this).transition(500).style("fill", d.fill);
             });
 
@@ -217,9 +218,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
             .attr("cursor", "pointer")
             // .attr("user-select", "none")
             .on("dblclick", function (d: TreeStructLevelNodeLabel<K>, i: number, rects: any[]) {
-                d.key != null && console.log("delete node by key: ", d);
-                // @ts-ignore
-                // d3.select(this).transition(500).style("fill", d.fill);
+                d.key != null && self.nodeDoubleClickPublisher.publish(d.key);
             })
     }
 

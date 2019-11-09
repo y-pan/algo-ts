@@ -46,7 +46,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     }
 
     delete(key: K): nlb<RedBlackTreeNode<K, V>> {
-        throw new Error("Method not implemented.");
+        console.log("Method not implemented.");
+        return null;
     }
 
     put(key: K, val: V): void {

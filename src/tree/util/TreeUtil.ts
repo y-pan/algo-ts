@@ -1,5 +1,7 @@
 import {StringMap} from "../../types/StringMap";
 import {isNull} from "../../utils/util";
+import {RedBlackTreeNode} from "../RedBlackTreeNode";
+import {nlb} from "../../types/Nullable";
 
 const KEY_COUNTER: StringMap<number> = {};
 
@@ -21,4 +23,24 @@ export function uniqueId(prefix: string | number): string {
     const key: string = `${prefix}-${count}`;
     KEY_COUNTER[prefix] = count;
     return key;
+}
+
+export function isRed(rbNode: nlb<RedBlackTreeNode<any, any>>): boolean {
+    return rbNode ? rbNode.isRed() : false;
+}
+
+export function isBlack(rbNode: nlb<RedBlackTreeNode<any, any>>): boolean {
+    return !isRed(rbNode);
+}
+
+export function hasRedLeft(rbNode: nlb<RedBlackTreeNode<any, any>>): boolean {
+    // has a left red child
+    if (!rbNode) return false;
+    return rbNode.left ? rbNode.left.isRed() : false;
+}
+
+export function hasRedLeftLeft(rbNode: nlb<RedBlackTreeNode<any, any>>): boolean {
+    // has left red child which also has a left red child
+    if (!rbNode) return false;
+    return hasRedLeft(rbNode) && hasRedLeft(rbNode.left);
 }

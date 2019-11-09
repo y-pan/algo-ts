@@ -1,6 +1,11 @@
 export function isNull(val: any): boolean {
     return val === null || val === undefined;
 }
+
+export function notNull(val: any): boolean {
+    return !isNull(val);
+}
+
 const ALPHABET: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";// 52
 
 export function getRandomAlpha(): string {

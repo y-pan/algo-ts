@@ -29,7 +29,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         super(props);
         (window as any)["tree"] = this.redBlackTree;
         (window as any)["vis"] = this.redBlackTreeVis;
-
+        this.redBlackTreeVis.subscribeNodeDoubleClick((k: number) => this.delete(k))
     }
 
     render(): JSX.Element {
@@ -104,4 +104,16 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                 .draw();
         }
     }
+
+    private delete(key: number): void {
+        const deleted = this.redBlackTree.delete(key);
+        if (deleted != null) {
+            console.log("deleted: ", deleted);
+
+            this.array = this.array.filter(num => num !== key);
+            this.renderArraySvg();
+            this.renderRedBlackSvg();
+        }
+    }
+
 }
