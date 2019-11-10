@@ -93,7 +93,10 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
         const operations: JSX.Element[] = (
             [
-                <span style={{fontWeight: "bold", border: ""}}>({this.state.nextKey}, {this.state.nextValue})</span>,
+                <span style={{
+                    fontWeight: "bold",
+                    border: ""
+                }}>Next Key/Value: ({this.state.nextKey}, {this.state.nextValue})</span>,
                 <button key={"add"}
                         onClick={() => this.add()}>
                     Add
