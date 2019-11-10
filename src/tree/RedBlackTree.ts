@@ -4,6 +4,11 @@ import {nlb} from "../types/Nullable";
 import {hasRedLeft, hasRedLeftLeft, isBlack, isRed, size} from "./util/TreeUtil";
 import {requireNonNull, requireTrue} from "../utils/Type";
 
+/*
+From Java source:
+https://github.com/kevin-wayne/algs4/blob/master/src/main/java/edu/princeton/cs/algs4/RedBlackBST.java
+ */
+
 type Node<K, V> = nlb<RedBlackTreeNode<K, V>>;
 
 export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
@@ -68,9 +73,9 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         return bin.length > 0 ? bin[0] : null;
     }
 
-    put(key: K, val: V): void {
+    put(key: K, value: V): void {
         requireNonNull(key, "put() requires: key non-null");
-        requireNonNull(val, "put() requires: value non-null");
+        requireNonNull(value, "put() requires: value non-null");
 
         // if (val == null) {
         //     console.warn(`By design to delete node [key=${key}] when value is null`);
@@ -78,7 +83,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         //     return;
         // }
 
-        this._root = this.putNode(this._root, key, val); // put from node
+        this._root = this.putNode(this._root, key, value); // put from node
         this._root && this._root.markBlack();
     }
 
@@ -153,7 +158,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
         this._root = this.deleteMaxFrom(this._root, bin);
         this._root && this._root.markBlack();
-        // check?
+
+        // this.check();
         return bin.length > 0 ? bin[0] : null;
     }
 
@@ -161,7 +167,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         if (!this._root) throw `Tree underflow.`;
         const bin: Node<K, V>[] = [];
 
-        if (isBlack(this._root.left) && isBlack(this._root.right)) this._root.markRed(); // prepare for balancing
+        if (isBlack(this._root.left) && isBlack(this._root.right)) this._root.markRed();
 
         this._root = this.deleteMinFrom(this._root, bin);
         this._root && this._root.markBlack();
@@ -178,9 +184,10 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
             return h.right;
         }
 
-        // if (isBlack(h.left) && isBlack(h.left.left)) {
-        //     h = this.moveRedLeft(h);
-        // }
+        if (isBlack(h.left) && isBlack(h.left.left)) {
+            // TODO: some issue here
+            // h = this.moveRedLeft(h);
+        }
 
         h.left = this.deleteMinFrom(h.left, bin);
         return this.balance(h);
@@ -194,7 +201,10 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
             return h.left;
         }
 
-        // moveRedRight() ?
+        if (isRed(h.right) && isRed(h.right.left)) {
+            // TODO: some issue here
+            // h = this.moveRedRight(h);
+        }
 
         h.right = this.deleteMaxFrom(h.right, bin);
         return this.balance(h);
@@ -385,6 +395,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         return h;
     }
 
+    // Assuming that h is red, and both h.right and h.right.left
+    // are black, make h.right or one of its children red.
     private moveRedRight(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
         h = requireNonNull(h, "moveRedRight() requires: h non-null");
         const hLeft = requireNonNull(h.left, "moveRedRight() requires: h.left non-null");
