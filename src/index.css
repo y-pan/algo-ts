@@ -16,6 +16,11 @@ code {
   overflow: auto;
 }
 
+.centered {
+    margin: 1px auto;
+    width: fit-content;
+}
+
 .table-border-simple {
     border-spacing: unset;
     border-collapse: collapse;

@@ -119,7 +119,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         );
 
         const treeStats = (
-            <div>
+            <div className={"centered"}>
                 <table className={"table-border-simple"}>
                     <thead>
                     <tr>
