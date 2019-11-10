@@ -30,7 +30,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private readonly inputArrayVis: ArrayVis<number> = new ArrayVis();
     private inputArraySvgContainer: nlb<HTMLElement>;
 
-    private readonly deletionArray: nlb<number>[] = [];
+    private deletionArray: nlb<number>[] = [];
     private readonly deletionArrayVis: ArrayVis<number> = new ArrayVis();
     private deletionArraySvgContainer: nlb<HTMLElement>;
 
@@ -40,7 +40,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         (window as any)["vis"] = this.redBlackTreeVis;
 
         this.redBlackTreeVis
-            .withNodeSize(10)
+            .withNodeSize(20)
             // .withContainer(this.treeSvgContainer)
             // .withData(levels.getFlatNodeArray())
             .withKeyExtractor((node: nlb<RedBlackTreeNode<number, string>>) => {
@@ -60,10 +60,11 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             });
 
         this.redBlackTreeVis.subscribeNodeDoubleClick((k: number) => this.delete(k));
+        this.inputArrayVis.withNodeSize(20);
         this.deletionArrayVis
             .withNodeColorProvider(() => "#ecee54")
             .withNodeTextColor(() => "#b00fec")
-            .withNodeSize(10);
+            .withNodeSize(20);
 
         this.state = {
             deleteDisabled: true,
@@ -94,9 +95,12 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                         onClick={() => this.deleteMax()}
                         disabled={this.state.deleteDisabled}>
                     Delete Max
+                </button>,
+
+                <button key={"reset"} style={{color: "#ff0000"}}
+                        onClick={() => this.reset()}>
+                    Reset
                 </button>
-
-
             ]
         );
 
@@ -254,5 +258,26 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         this.deletionArrayVis.withContainer(requireNonNull(this.deletionArraySvgContainer))
             .withData(this.deletionArray)
             .draw();
+    }
+
+    private reset() {
+        this.inputArray = [];
+        this.deletionArray = [];
+        while (!this.redBlackTree.isEmpty()) {
+            this.redBlackTree.deleteMin();
+        }
+
+        this.renderArraySvg();
+        this.renderDeletionArraySvg();
+        this.renderRedBlackSvg();
+
+        this.setState({
+            totalInputCount: 0,
+            treeUpdateCount: 0,
+            treeInsertCount: 0,
+            treeDeleteCount: 0,
+            deleteDisabled: this.redBlackTree.isEmpty(),
+            treeSize: this.redBlackTree.getSize()
+        });
     }
 }

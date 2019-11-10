@@ -5,6 +5,6 @@ interface TreeStructLevelNodeLabel<KEY extends number | string> {
     text: string;
     x: number;
     y: number;
-    fontSize: number;
+    // fontSize: number;
     fill: string;
 }

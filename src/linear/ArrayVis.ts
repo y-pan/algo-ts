@@ -4,6 +4,7 @@ import * as d3 from "d3";
 import {isNull} from "../utils/util";
 import {Vis} from "../types/Vis";
 import {Supplier} from "../types/Supplier";
+import {Trigger} from "../triggers/Trigger";
 
 export class ArrayVis<T> implements Vis<T> {
 
@@ -13,11 +14,30 @@ export class ArrayVis<T> implements Vis<T> {
     private svg: any;
     private svgGroup: any;
     private nodeColorProvider: BiFunc<nlb<T>, number, string> | undefined;
-    private nodeSize: number = 10;
+
+    private readonly nodeSize: Trigger<number>;
+    private rectWidth: number;
+    private rectHeight: number;
+    private fontSize: number;
     private nodeTextProvider: BiFunc<nlb<T>, number, string> | undefined;
     private nodeTextColorProvider: BiFunc<nlb<T>, number, string> | undefined;
 
     constructor() {
+
+        this.rectWidth = 10;
+        this.rectHeight = 10;
+        this.fontSize = this.rectHeight / 2;
+        this.nodeSize = new Trigger<number>(20, (nodeSize: nlb<number>) => {
+            if (nodeSize != null && nodeSize > 0) {
+                this.rectHeight = nodeSize;
+                this.rectWidth = nodeSize;
+            } else {
+                this.rectHeight = 10;
+                this.rectWidth = 10;
+            }
+            this.fontSize = this.rectHeight / 2;
+        });
+
     }
 
     clear(): void {
@@ -38,12 +58,13 @@ export class ArrayVis<T> implements Vis<T> {
             if (!dom) throw "Dom element is required.";
             this.svg = d3.select(dom).append("svg");
             this.svgGroup = this.svg.append("g");
+
         }
 
         this.clear();
-        if (!this.data || this.data.length === 0) return;
+        this.resize((this.data.length + 1) * this.rectWidth, this.rectHeight);
 
-        this.resize((this.data.length + 1) * this.nodeSize * 2, this.nodeSize * 2);
+        if (!this.data || this.data.length === 0) return;
         const self = this;
 
         if (this.svgGroup) {
@@ -53,8 +74,8 @@ export class ArrayVis<T> implements Vis<T> {
                 .attr("class", "heap-array-rect")
                 .attr("x", (d: nlb<T>, i: number) => self.rectX(d, i))
                 .attr("y", (d: nlb<T>, i: number) => self.rectY(d, i))
-                .attr("width", this.nodeSize * 2)
-                .attr("height", this.nodeSize * 2)
+                .attr("width", this.rectWidth)
+                .attr("height", this.rectHeight)
                 .attr("fill", (d: nlb<T>, i: number) => this.getNodeColor(d, i))
                 .attr("stroke", (d: nlb<T>, i: number) => this.getBorderColor(d, i));
 
@@ -63,10 +84,10 @@ export class ArrayVis<T> implements Vis<T> {
                 .data(this.data)
                 .enter().append("text")
                 .text((d: nlb<T>, i: number) => this.getText(d, i))
-                .attr("x", (d: nlb<T>, i: number) => this.rectX(d, i) + this.nodeSize / 3)
-                .attr("y", (d: nlb<T>, i: number) => this.rectY(d, i) + this.nodeSize)
+                .attr("x", (d: nlb<T>, i: number) => this.rectX(d, i) + this.rectWidth / 6)
+                .attr("y", (d: nlb<T>, i: number) => this.rectY(d, i) + this.rectHeight / 2)
                 .attr("fill", (d: nlb<T>, i: number) => this.getTextColor(d, i))
-                .attr("font-size", this.nodeSize)
+                .attr("font-size", this.fontSize)
                 .attr("font-weight", "bold");
 
         }
@@ -96,7 +117,7 @@ export class ArrayVis<T> implements Vis<T> {
     }
 
     withNodeSize(size: number): ArrayVis<T> {
-        this.nodeSize = size;
+        this.nodeSize.value = size;
         return this;
     }
 
@@ -111,7 +132,7 @@ export class ArrayVis<T> implements Vis<T> {
     }
 
     private rectX(d: nlb<T>, i: number): number {
-        return this.nodeSize * 2 * i;
+        return this.rectWidth * i;
     }
 
     private rectY(d: nlb<T>, i: number): number {

@@ -13,6 +13,7 @@ import {TreeStructLevelNodeLabel} from "../types/TreeStructLevelNodeLabel";
 import {TreeStructLevelNode} from "../types/TreeStructLevelNode";
 import {Consumer} from "../../types/Consumer";
 import {EventPublisher} from "../../event/EventPublisher";
+import {Trigger} from "../../triggers/Trigger";
 
 // T: object
 export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K, V> {
@@ -21,10 +22,12 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
     private keyExt: Func<nlb<T>, nlb<K>> | undefined;
     private valExt: Func<nlb<T>, nlb<V>> | undefined;
     private nodeColorProvider: BiFunc<nlb<T>, number, string> | undefined;
-    private nodeSize: number = 15;
-    private _vSpace: number = 5;
-    private initialHeight: number = 50;
-    private initialWidth: number = 50;
+    private nodeSize: Trigger<number>; // nodeSize is the diameter, = radius * 2
+    private nodeRadius: number = 10;
+    private nodeFontSize: number = 5;
+    private _vSpace: number;
+    private initialHeight: number;
+    private initialWidth: number;
 
     private svg: any;
     private svgGroup: any;
@@ -33,8 +36,18 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
 
     constructor() {
         this.nodes = [];
-        this.nodeSize = 15;
+
+        this.nodeSize = new Trigger<number>(20, (value: nlb<number>) => {
+            if (value && value > 0) {
+                this.nodeRadius = value / 2;
+            } else {
+                this.nodeRadius = 10;
+            }
+            this.nodeFontSize = this.nodeRadius;
+        });
         this._vSpace = 5;
+        this.initialHeight = 50;
+        this.initialWidth = 50;
     }
 
     subscribeNodeDoubleClick(consumer: Consumer<K>): void {
@@ -65,8 +78,8 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
         return this;
     }
 
-    withNodeSize(nodeCircleRadius: number): TreeVis<T, K, V> {
-        nodeCircleRadius && (this.nodeSize = nodeCircleRadius);
+    withNodeSize(diameter: number): TreeVis<T, K, V> {
+        this.nodeSize.value = diameter;
         return this;
     }
 
@@ -87,7 +100,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
                 .attr("height", 300);
 
             this.svgGroup = this.svg.append("g")
-                .attr("transform", `translate(${this.nodeSize}, ${this.nodeSize})`); // Having a group, easy to redraw everything
+                .attr("transform", `translate(${this.nodeRadius}, ${this.nodeRadius})`); // Having a group, easy to redraw everything
         }
         return this;
     }
@@ -100,7 +113,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
         const treeStruct = new TreeStruct(this.nodes.length);// TreeStruct only cares about the _size, and make structure, not the actual values
 
         // resize svg
-        this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this.nodeSize + this._vSpace) * 2);
+        this.resize(((treeStruct.getMaxLevelCapacity()) / 30) * 900, (treeStruct.getMaxHeight() + 1) * (this.nodeRadius + this._vSpace) * 2);
 
         // use structure to map each level
         const mappedLevels: TreeStructLevel[] = [];
@@ -213,7 +226,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
             .text((d: TreeStructLevelNodeLabel<K>, i: number) => d.text)
             .attr("x", (d: TreeStructLevelNodeLabel<K>, i: number) => d.x)
             .attr("y", (d: TreeStructLevelNodeLabel<K>, i: number) => d.y)
-            .attr("font-size", (d: TreeStructLevelNodeLabel<K>, i: number) => d.fontSize)
+            .attr("font-size", this.nodeFontSize)
             .attr("fill", (d: TreeStructLevelNodeLabel<K>) => d.fill)
             .attr("font-weight", "bold")
             .attr("cursor", "pointer")
@@ -226,10 +239,10 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
     mapLevel(level: BaseTreeStructLevel, array: nlb<T>[], maxLevelSize: number): TreeStructLevel {
 
         const size = level.capacity;
-        const deltaHSpace = (maxLevelSize / size - 1) * (this.nodeSize * 2) / 2;
+        const deltaHSpace = (maxLevelSize / size - 1) * (this.nodeRadius * 2) / 2;
 
-        const cx = (d: nlb<T>, i: number) => (i) * (this.nodeSize + deltaHSpace) * 2 + deltaHSpace;
-        const cy = level.height * (this.nodeSize + this._vSpace) * 2;
+        const cx = (d: nlb<T>, i: number) => (i) * (this.nodeRadius + deltaHSpace) * 2 + deltaHSpace;
+        const cy = level.height * (this.nodeRadius + this._vSpace) * 2;
 
         const mappedNodes: TreeStructLevelNode<K>[] = level.indices.map(i => array[i])
             .map((d: nlb<T>, i) => {
@@ -237,7 +250,7 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
                     key: this.getKey(d, i),
                     x: cx(d, i),
                     y: cy,
-                    r: this.nodeSize,
+                    r: this.nodeRadius,
                     fill: this.getNodeColor(d, i),
                     stroke: "#ffffff",
                 };
@@ -248,9 +261,8 @@ export class TreeVis<T, K extends string | number, V> implements ObjectVis<T, K,
                 return {
                     key: this.getKey(d, i),
                     text: this.getText(d, i),
-                    x: cx(d, i) - this.nodeSize / 2,
-                    y: cy + this.nodeSize / 3,
-                    fontSize: this.nodeSize,
+                    x: cx(d, i) - this.nodeRadius / 2,
+                    y: cy + this.nodeRadius / 3,
                     fill: this.getTextColor(d, i)
                 }
             });
