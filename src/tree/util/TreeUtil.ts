@@ -44,3 +44,7 @@ export function hasRedLeftLeft(rbNode: nlb<RedBlackTreeNode<any, any>>): boolean
     if (!rbNode) return false;
     return hasRedLeft(rbNode) && hasRedLeft(rbNode.left);
 }
+
+export function size(h: nlb<RedBlackTreeNode<any, any>>): number {
+    return !h ? 0 : h.size;
+}

@@ -1,7 +1,8 @@
 import {IRedBlackTree} from "./types/IRedBlackTree";
 import {RedBlackTreeNode} from "./RedBlackTreeNode";
 import {nlb} from "../types/Nullable";
-import {hasRedLeft, hasRedLeftLeft, isBlack, isRed} from "./util/TreeUtil";
+import {hasRedLeft, hasRedLeftLeft, isBlack, isRed, size} from "./util/TreeUtil";
+import {requireNonNull, requireTrue} from "../utils/Type";
 
 type Node<K, V> = nlb<RedBlackTreeNode<K, V>>;
 
@@ -106,71 +107,55 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
             this.flipColors(node);
         }
 
-        node.size = (1 + this.sizeOf(node.left) + this.sizeOf(node.right));
+        node.size = (1 + size(node.left) + size(node.right));
         return node;
     }
 
-    private sizeOf(node: Node<K, V>): number {
-        return !node ? 0 : node.size;
-    }
+    rotateRight(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
+        h = requireNonNull(h, "rotateRight() requires: h non-null");
 
-    rotateRight(node: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
-        console.info("rotateRight()", node.key);
+        const x = requireNonNull(h.left, "rotateRight() requires: h.left non-null");
+        requireTrue(isRed(h.left), "rotateRight() requires: h.left is red");
+        requireTrue(isRed(requireNonNull(h.left).left), "rotateRight() requires: h.left.left is red")
 
-        if (!node) throw "Node is required";
+        h.left = x.right;
+        x.right = h;
+        x.color = x.right.color;
+        x.right.markRed();
 
-        const x = node.left;
-        const leftLeft = x ? x.left : undefined;
-
-        if (isBlack(x)) throw "rotateRight: _left child is expected to be _color";
-        if (!x || isBlack(leftLeft)) throw "rotateRight: _left child's _left is expected to be _color";
-
-        node.left = x.right;
-        x.right = node;
-
-        x.color = node.color;
-        node.markRed();
-
-        x.size = node.size;
-        node.size = 1 + this.sizeOf(node.left) + this.sizeOf(node.right);
+        x.size = h.size;
+        h.size = 1 + size(h.left) + size(h.right);
         return x;
     }
 
-    rotateLeft(node: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
-        console.info("rotateLeft()", node.key);
-        if (!node) throw "Node is required";
+    rotateLeft(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
+        h = requireNonNull(h, "rotateLeft() requires: h non-null");
+        const x = requireNonNull(h.right, "rotateLeft() requires: h.right non-null");
 
-        const x = node.right;
+        requireTrue(isBlack(h.left), "rotateLeft() requires: h.left is black");
+        requireTrue(isRed(h.right), "rotateLeft() requires: h.right is red");
 
-        if (isRed(node.left)) throw "rotateLeft: _left child is expected to be black";
-        if (!x || isBlack(node.right)) throw "rotateLeft: _right child is expected to be _color";
+        h.right = x.left;
+        x.left = h;
+        x.color = x.left.color;
+        x.left.markRed();
 
-        node.right = x.left;
-        x.left = node;
-
-        x.color = node.color;
-        node.markRed();
-
-        x.size = node.size;
-        node.size = 1 + this.sizeOf(node.left) + this.sizeOf(node.right);
+        x.size = h.size;
+        h.size = 1 + size(h.left) + size(h.right);
         return x;
     }
 
-    flipColors(node: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
-        console.info("flipColors()", node.key);
+    flipColors(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
+        requireNonNull(h, "flipColors() requires: h non-null");
+        const hLeft = requireNonNull(h.left, "flipColors() requires: h.left non-null");
+        const hRight = requireNonNull(h.right, "flipColors() requires: h.right non-null");
+        requireTrue(isRed(h.left), "flipColors() requires: h.left red");
+        requireTrue(isRed(h.right), "flipColors() requires: h.right red");
 
-        if (!node) throw "Node is required";
-        // if (isBlack(node)) throw "flip colors: node is expected to be black";
-
-        const left = node.left;
-        const right = node.right;
-
-        // if (isBlack(_left) || isBlack(_right)) throw "flip colors: both children are expected to be _color";
-
-        left && (left.color = !left.color);
-        right && (right.color = !right.color);
-        node.color = !node.color;
-        return node;
+        hLeft.color = !hLeft.color;
+        hRight.color = !hRight.color;
+        h.color = !h.color;
+        return h;
     }
 
     deleteMax(): Node<K, V> {
@@ -186,10 +171,14 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     deleteMin(): Node<K, V> {
         //TODO: balance after deletion
         if (!this._root) throw `Tree underflow.`;
-        if (!isRed(this._root.left) && !isRed(this._root.right)) this._root.markRed();
         const bin: Node<K, V>[] = [];
+
+        if (!isRed(this._root.left) && !isRed(this._root.right)) this._root.markRed(); // prepare for balancing
+
         this._root = this.deleteMinFrom(this._root, bin);
         this._root && this._root.markBlack();
+
+        // this.check();
         return bin.length > 0 ? bin[0] : null;
     }
 
@@ -252,7 +241,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
     private selectFrom(x: Node<K, V>, rank: number): RedBlackTreeNode<K, V> {
         if (!x) throw `Node should not be null in selectFrom()`;
-        let t = this.sizeOf(x.left);
+        let t = size(x.left);
         if (t > rank) return this.selectFrom(x.left, rank);
         else if (t < rank) return this.selectFrom(x.right, rank - t - 1);
         else return x;
@@ -267,8 +256,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     private rankFrom(key: K, x: Node<K, V>): number {
         if (!x) return 0;
         if (key < x.key) return this.rankFrom(key, x.left);
-        else if (key > x.key) return 1 + this.sizeOf(x.left) + this.rankFrom(key, x.right);
-        else return this.sizeOf(x.left);
+        else if (key > x.key) return 1 + size(x.left) + this.rankFrom(key, x.right);
+        else return size(x.left);
     }
 
     private isSizeConsistent(): boolean {
@@ -338,7 +327,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
     private isSizeConsistentFrom(node: Node<K, V>): boolean {
         if (!node) return true;
-        if (node.size != (this.sizeOf(node.left) + this.sizeOf(node.right) + 1)) return false;
+        if (node.size != (size(node.left) + size(node.right) + 1)) return false;
         return this.isSizeConsistentFrom(node.left) && this.isSizeConsistentFrom(node.right);
     }
 
@@ -388,19 +377,24 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     }
 
     private moveRedLeft(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
+        h = requireNonNull(h, "moveRedLeft() expects non-null");
+        const hRight = requireNonNull(h.right, "moveRedLeft() expects non-null for h.right");
+
         this.flipColors(h);
-        if (h.right && isRed(h.right.left)) {
-            h.right = this.rotateRight(h.right);
+        if (isRed(hRight.left)) {
+            h.right = this.rotateRight(hRight);
             h = this.rotateLeft(h);
             this.flipColors(h);
-            ;
         }
         return h;
     }
 
     private moveRedRight(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
+        h = requireNonNull(h, "moveRedRight() expects non-null");
+        const hLeft = requireNonNull(h.left, "moveRedRight() expects non-null for h.left");
+
         this.flipColors(h);
-        if (h.left && isRed(h.left)) {
+        if (isRed(hLeft.left)) {
             h = this.rotateRight(h);
             this.flipColors(h);
         }
@@ -412,7 +406,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         if (h.left && isRed(h.left) && isRed(h.left.left)) h = this.rotateRight(h);
         if (isRed(h.left) && isRed(h.right)) this.flipColors(h);
 
-        h.size = this.sizeOf(h.left) + this.sizeOf(h.right) + 1;
+        h.size = size(h.left) + size(h.right) + 1;
         return h;
     }
 }
