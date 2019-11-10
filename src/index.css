@@ -15,3 +15,8 @@ code {
 .svg-container {
   overflow: auto;
 }
+
+.table-border-simple th,
+.table-border-simple td {
+    border: 1px solid cadetblue;
+}

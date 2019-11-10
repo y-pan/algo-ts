@@ -22,18 +22,18 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     }
 
     getValue(key: K): nlb<V> {
-        this.validateKey(key);
+        requireNonNull(key, "getValue() requires: key non-null");
         const node = this.getNode(key);
         return node ? node.value : undefined;
     }
 
     contains(key: K): boolean {
-        this.validateKey(key);
+        requireNonNull(key, "contains() requires: key non-null");
         return this.getNode(key) != null;
     }
 
     getNode(key: K): Node<K, V> {
-        this.validateKey(key);
+        requireNonNull(key, "getNode() requires: key non-null");
         let node = this._root;
         while (node) {
             if (key === node.key) {
@@ -69,20 +69,23 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     }
 
     put(key: K, val: V): void {
-        this.validateKey(key);
+        requireNonNull(key, "put() requires: key non-null");
+        requireNonNull(val, "put() requires: value non-null");
 
-        if (val == undefined) {
-            console.log("null key and do delete ");
-            this.delete(key);
-            return;
-        }
+        // if (val == null) {
+        //     console.warn(`By design to delete node [key=${key}] when value is null`);
+        //     this.delete(key);
+        //     return;
+        // }
 
         this._root = this.putNode(this._root, key, val); // put from node
         this._root && this._root.markBlack();
     }
 
     protected putNode(node: Node<K, V>, key: K, val: V): Node<K, V> {
-        this.validateKey(key);
+        requireNonNull(key, "putNode() requires: node non-null");
+        requireNonNull(key, "putNode() requires: val non-null");
+
         if (!node) return new RedBlackTreeNode(key, val);
         if (key < node.key) {
             node.left = this.putNode(node.left, key, val);
@@ -192,6 +195,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
         h.left = this.deleteMinFrom(h.left, bin);
         // return this.balance(h);
+        h.size = 1 + size(h.left) + size(h.right);
         return h;
     }
 
@@ -204,11 +208,8 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
 
         h.right = this.deleteMaxFrom(h.right, bin);
         // balance ?
+        h.size = 1 + size(h.left) + size(h.right);
         return h;
-    }
-
-    private validateKey(key: K) {
-        if (key == null) throw `Key is required`;
     }
 
     // checks
@@ -373,6 +374,7 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
             }
         }
         // got it
+        h.size = 1 + size(h.left) + size(h.right);
         return this.balance(h);
     }
 

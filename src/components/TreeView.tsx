@@ -6,7 +6,7 @@ import {TreeLevelScan} from "../tree/processing/TreeLevelScan";
 import {RedBlackTree} from "../tree/RedBlackTree";
 import {RedBlackTreeNode} from "../tree/RedBlackTreeNode";
 import {ArrayVis} from "../linear/ArrayVis";
-import {requireNonNull} from "../utils/Type";
+import {requireEqual, requireNonNull} from "../utils/Type";
 
 interface TreeProps {
 
@@ -14,6 +14,11 @@ interface TreeProps {
 
 interface TreeState {
     deleteDisabled: boolean;
+    totalInputCount: number; // total input count
+    treeDeleteCount: number;
+    treeSize: number;
+    treeInsertCount: number; // inserting count - when inserting a key not exists in current tree
+    treeUpdateCount: number; // when inserting key that already exists in tree, will do update
 }
 
 export class TreeView extends React.Component<TreeProps, TreeState> {
@@ -61,7 +66,12 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             .withNodeSize(10);
 
         this.state = {
-            deleteDisabled: true
+            deleteDisabled: true,
+            totalInputCount: 0,
+            treeDeleteCount: 0,
+            treeSize: 0,
+            treeUpdateCount: 0,
+            treeInsertCount: 0,
         }
     }
 
@@ -108,9 +118,34 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             </div>
         );
 
+        const treeStats = (
+            <div>
+                <table className={"table-border-simple"}>
+                    <thead>
+                    <tr>
+                        <th>Total Input Count</th>
+                        <th>Tree Insertion Count</th>
+                        <th>Tree Update Count</th>
+                        <th>Tree Deletion Count</th>
+                        <th>Current Tree Size</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>{this.state.totalInputCount}</td>
+                        <td>{this.state.treeInsertCount}</td>
+                        <td>{this.state.treeUpdateCount}</td>
+                        <td>{this.state.treeDeleteCount}</td>
+                        <td>{this.state.treeSize}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        );
         return (
             <div>
                 {operations}
+                {treeStats}
                 {inputArraySvg}
                 {deletionArraySvg}
                 {treeSvg}
@@ -122,37 +157,66 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     private addRandom(): void {
         const key: number = Math.floor(Math.random() * 100);
         const value: string = uniqueId(key);
+        requireNonNull(key, "Tree requires key non-null");
+        requireNonNull(value, "Tree requires value non-null");
+
+        const treeSizeWas: number = this.redBlackTree.getSize();
+        const isInsertion: boolean = !this.redBlackTree.contains(key);
+
+        const treeSizeToBe = isInsertion ? treeSizeWas + 1 : treeSizeWas; // if contains, will do update
+
         this.inputArray.push(key);
         this.redBlackTree.put(key, value);
-        this.afterAdd();
+
+        requireEqual(treeSizeToBe, this.redBlackTree.getSize());
+        this.afterAddSuccess(isInsertion);
     }
 
     private delete(key: number): void {
+        const treeSizeWas: number = this.redBlackTree.getSize();
         const deleted = this.redBlackTree.delete(key);
-        deleted && this.afterDeletion(deleted);
+        if (deleted) {
+            requireEqual(treeSizeWas - 1, this.redBlackTree.getSize());
+        }
+        deleted && this.afterDeletionSuccess(deleted);
     }
 
     private deleteMin(): void {
+        const treeSizeWas: number = this.redBlackTree.getSize();
         const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMin();
-        deleted && this.afterDeletion(deleted);
+        if (deleted) {
+            requireEqual(treeSizeWas - 1, this.redBlackTree.getSize());
+        }
+        deleted && this.afterDeletionSuccess(deleted);
     }
 
     private deleteMax() {
+        const treeSizeWas: number = this.redBlackTree.getSize();
         const deleted: nlb<RedBlackTreeNode<number, string>> = this.redBlackTree.deleteMax();
-        deleted && this.afterDeletion(deleted);
+        if (deleted) {
+            requireEqual(treeSizeWas - 1, this.redBlackTree.getSize());
+        }
+
+        deleted && this.afterDeletionSuccess(deleted);
     }
 
     // Do after operations
-    private afterAdd(): void {
+    private afterAddSuccess(isInsertion: boolean): void {
         this.renderArraySvg();
         this.renderRedBlackSvg();
 
         this.setState({
-            deleteDisabled: this.redBlackTree.isEmpty()
+            deleteDisabled: this.redBlackTree.isEmpty(),
+            totalInputCount: this.state.totalInputCount + 1,
+            treeSize: this.redBlackTree.getSize(),
+            treeInsertCount: isInsertion ? this.state.treeInsertCount + 1 : this.state.treeInsertCount,
+            treeUpdateCount: isInsertion ? this.state.treeUpdateCount : this.state.treeUpdateCount + 1
+        }, () => {
+            requireEqual(this.state.treeInsertCount + this.state.treeUpdateCount, this.state.totalInputCount);
         });
     }
 
-    private afterDeletion(deleted: RedBlackTreeNode<number, string>): void {
+    private afterDeletionSuccess(deleted: RedBlackTreeNode<number, string>): void {
         this.inputArray = this.inputArray.filter(num => num !== deleted.key);
         this.deletionArray.push(deleted.key);
         this.renderArraySvg();
@@ -160,7 +224,12 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         this.renderDeletionArraySvg();
 
         this.setState({
-            deleteDisabled: this.redBlackTree.isEmpty()
+            deleteDisabled: this.redBlackTree.isEmpty(),
+            treeDeleteCount: this.state.treeDeleteCount + 1,
+            treeSize: this.redBlackTree.getSize()
+        }, () => {
+            requireEqual(this.state.treeDeleteCount, this.deletionArray.length);
+            requireEqual(this.state.treeDeleteCount + this.state.treeUpdateCount + this.state.treeSize, this.state.totalInputCount);
         });
     }
 
