@@ -82,36 +82,20 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
         this._root && this._root.markBlack();
     }
 
-    protected putNode(node: Node<K, V>, key: K, val: V): Node<K, V> {
+    protected putNode(h: Node<K, V>, key: K, val: V): Node<K, V> {
         requireNonNull(key, "putNode() requires: node non-null");
         requireNonNull(key, "putNode() requires: val non-null");
 
-        if (!node) return new RedBlackTreeNode(key, val);
-        if (key < node.key) {
-            node.left = this.putNode(node.left, key, val);
-        } else if (key > node.key) {
-            node.right = this.putNode(node.right, key, val);
+        if (!h) return new RedBlackTreeNode(key, val);
+        if (key < h.key) {
+            h.left = this.putNode(h.left, key, val);
+        } else if (key > h.key) {
+            h.right = this.putNode(h.right, key, val);
         } else {
-            node.value = val;
+            h.value = val;
         }
 
-        if (isBlack(node.left) &&
-            isRed(node.right)) {
-            node = this.rotateLeft(node);
-        }
-
-        if (node.left && node.left.isRed()
-            && node.left.left && node.left.left.isRed()) {
-            node = this.rotateRight(node);
-        }
-
-        if (node.left && node.left.isRed()
-            && node.right && node.right.isRed()) {
-            this.flipColors(node);
-        }
-
-        node.size = (1 + size(node.left) + size(node.right));
-        return node;
+        return this.balance(h);
     }
 
     rotateRight(h: RedBlackTreeNode<K, V>): RedBlackTreeNode<K, V> {
@@ -419,9 +403,9 @@ export class RedBlackTree<K, V> implements IRedBlackTree<K, V> {
     private balance(h: RedBlackTreeNode<K, V>): Node<K, V> {
         h = requireNonNull(h, "balance() requires: h non-null");
 
-        // if (isRed(h.right)) h = this.rotateLeft(h);
-        // if (h.left && isRed(h.left) && isRed(h.left.left)) h = this.rotateRight(h);
-        // if (isRed(h.left) && isRed(h.right)) this.flipColors(h);
+        if (isBlack(h.left) && isRed(h.right)) h = this.rotateLeft(h);
+        if (h.left && isRed(h.left) && isRed(h.left.left)) h = this.rotateRight(h);
+        if (isRed(h.left) && isRed(h.right)) this.flipColors(h);
 
         h.size = size(h.left) + size(h.right) + 1;
         return h;
