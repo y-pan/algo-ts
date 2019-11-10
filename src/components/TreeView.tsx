@@ -19,6 +19,13 @@ interface TreeState {
     treeSize: number;
     treeInsertCount: number; // inserting count - when inserting a key not exists in current tree
     treeUpdateCount: number; // when inserting key that already exists in tree, will do update
+
+    prevInsertOrUpdateKey?: number;
+    wasInsertion?: boolean;
+    prevDeletedKey?: number;
+
+    nextKey: number;
+    nextValue: string;
 }
 
 export class TreeView extends React.Component<TreeProps, TreeState> {
@@ -36,8 +43,8 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
     constructor(props: TreeProps) {
         super(props);
-        (window as any)["treeSvgContainer"] = this.redBlackTree;
-        (window as any)["vis"] = this.redBlackTreeVis;
+        (window as any)["tree"] = this.redBlackTree;
+        (window as any)["treeVis"] = this.redBlackTreeVis;
 
         this.redBlackTreeVis
             .withNodeSize(20)
@@ -66,6 +73,8 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             .withNodeTextColor(() => "#b00fec")
             .withNodeSize(20);
 
+        const {key, value} = this.getRandom();
+
         this.state = {
             deleteDisabled: true,
             totalInputCount: 0,
@@ -73,6 +82,10 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             treeSize: 0,
             treeUpdateCount: 0,
             treeInsertCount: 0,
+            prevDeletedKey: undefined,
+            prevInsertOrUpdateKey: undefined,
+            nextKey: key,
+            nextValue: value
         }
     }
 
@@ -80,9 +93,10 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
 
         const operations: JSX.Element[] = (
             [
-                <button key={"add-random"}
-                        onClick={() => this.addRandom()}>
-                    Add Random
+                <span style={{fontWeight: "bold", border: ""}}>({this.state.nextKey}, {this.state.nextValue})</span>,
+                <button key={"add"}
+                        onClick={() => this.add()}>
+                    Add
                 </button>,
 
                 <button key={"delete-min"}
@@ -128,10 +142,14 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                     <thead>
                     <tr>
                         <th>Total Input Count</th>
-                        <th>Tree Insertion Count</th>
-                        <th>Tree Update Count</th>
-                        <th>Tree Deletion Count</th>
+                        <th>Insertion Count</th>
+                        <th>Update Count</th>
+                        <th>Deletion Count</th>
                         <th>Current Tree Size</th>
+                        <th>Prev Insert/Update Key</th>
+                        <th>Prev Deleted Key</th>
+                        {/*<th>Next Key</th>*/}
+                        {/*<th>Next Value</th>*/}
                     </tr>
                     </thead>
                     <tbody>
@@ -141,6 +159,12 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
                         <td>{this.state.treeUpdateCount}</td>
                         <td>{this.state.treeDeleteCount}</td>
                         <td>{this.state.treeSize}</td>
+                        <td style={{color: this.state.wasInsertion ? "#1e9537" : "#0000ff"}}>{this.state.prevInsertOrUpdateKey}</td>
+                        <td style={{color: "#ff0000"}}>{this.state.prevDeletedKey}</td>
+
+                        {/*<td>{this.state.nextKey}</td>*/}
+                        {/*<td>{this.state.nextValue}</td>*/}
+
                     </tr>
                     </tbody>
                 </table>
@@ -158,11 +182,15 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     }
 
     // Operations
-    private addRandom(): void {
+    private getRandom(): { key: number, value: string } {
         const key: number = Math.floor(Math.random() * 100);
         const value: string = uniqueId(key);
-        requireNonNull(key, "Tree requires key non-null");
-        requireNonNull(value, "Tree requires value non-null");
+        return {key: key, value: value};
+    }
+
+    private add(): void {
+        const key = requireNonNull(this.state.nextKey, "Tree requires key non-null");
+        const value = requireNonNull(this.state.nextValue, "Tree requires value non-null");
 
         const treeSizeWas: number = this.redBlackTree.getSize();
         const isInsertion: boolean = !this.redBlackTree.contains(key);
@@ -173,7 +201,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         this.redBlackTree.put(key, value);
 
         requireEqual(treeSizeToBe, this.redBlackTree.getSize());
-        this.afterAddSuccess(isInsertion);
+        this.afterAddSuccess(key, isInsertion);
     }
 
     private delete(key: number): void {
@@ -205,16 +233,23 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
     }
 
     // Do after operations
-    private afterAddSuccess(isInsertion: boolean): void {
+    private afterAddSuccess(key: number, isInsertion: boolean): void {
         this.renderArraySvg();
         this.renderRedBlackSvg();
 
+        const nextKeyValue = this.getRandom();
+
         this.setState({
+            prevInsertOrUpdateKey: key,
+            wasInsertion: isInsertion,
             deleteDisabled: this.redBlackTree.isEmpty(),
             totalInputCount: this.state.totalInputCount + 1,
             treeSize: this.redBlackTree.getSize(),
             treeInsertCount: isInsertion ? this.state.treeInsertCount + 1 : this.state.treeInsertCount,
-            treeUpdateCount: isInsertion ? this.state.treeUpdateCount : this.state.treeUpdateCount + 1
+            treeUpdateCount: isInsertion ? this.state.treeUpdateCount : this.state.treeUpdateCount + 1,
+
+            nextKey: nextKeyValue.key,
+            nextValue: nextKeyValue.value
         }, () => {
             requireEqual(this.state.treeInsertCount + this.state.treeUpdateCount, this.state.totalInputCount);
         });
@@ -228,6 +263,7 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
         this.renderDeletionArraySvg();
 
         this.setState({
+            prevDeletedKey: deleted.key,
             deleteDisabled: this.redBlackTree.isEmpty(),
             treeDeleteCount: this.state.treeDeleteCount + 1,
             treeSize: this.redBlackTree.getSize()
@@ -276,6 +312,9 @@ export class TreeView extends React.Component<TreeProps, TreeState> {
             treeUpdateCount: 0,
             treeInsertCount: 0,
             treeDeleteCount: 0,
+            prevInsertOrUpdateKey: undefined,
+            prevDeletedKey: undefined,
+            wasInsertion: undefined,
             deleteDisabled: this.redBlackTree.isEmpty(),
             treeSize: this.redBlackTree.getSize()
         });
