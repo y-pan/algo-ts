@@ -16,6 +16,11 @@ code {
   overflow: auto;
 }
 
+.table-border-simple {
+    border-spacing: unset;
+    border-collapse: collapse;
+}
+
 .table-border-simple th,
 .table-border-simple td {
     border: 1px solid cadetblue;
