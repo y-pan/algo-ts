@@ -1,0 +1,1 @@
+export type CompareFunc<T> = (val1: T, val2: T) => -1 | 0 | 1;

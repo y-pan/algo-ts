@@ -9,9 +9,9 @@ interface Vis<T> {
     withNodeColorProvider(colorProvider: BiFunc<nlb<T>, number, string>): Vis<T>; // (item: T, index: number) => string
     withNodeSize(size: number): Vis<T>;
 
-    withNodeText(textProvider: BiFunc<nlb<T>, number, string>): Vis<T>;
+    withNodeText?(textProvider: BiFunc<nlb<T>, number, string>): Vis<T>;
 
-    withNodeTextColor(textColorProvider: BiFunc<nlb<T>, number, string>): Vis<T>;
+    withNodeTextColor?(textColorProvider: BiFunc<nlb<T>, number, string>): Vis<T>;
 
     clear(): void;
     draw(): void;
