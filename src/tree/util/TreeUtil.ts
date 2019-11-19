@@ -1,5 +1,5 @@
 import {StringMap} from "../../types/StringMap";
-import {isNull} from "../../utils/util";
+import {isNull} from "../../utils/Type";
 import {RedBlackTreeNode} from "../RedBlackTreeNode";
 import {nlb} from "../../types/Nullable";
 

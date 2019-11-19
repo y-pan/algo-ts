@@ -1,13 +1,8 @@
 import {Func} from "../types/Func";
 import {nlb} from "../types/Nullable";
+import {Cell} from "../astar/Cell";
+import {requireNonNull} from "./Type";
 
-export function isNull(val: any): boolean {
-    return val === null || val === undefined;
-}
-
-export function notNull(val: any): boolean {
-    return !isNull(val);
-}
 
 const ALPHABET: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";// 52
 
@@ -41,4 +36,27 @@ export function compareWith<T, K extends string | number | undefined | null>(obj
     const key1 = keyExtractor(obj1);
     const key2 = keyExtractor(obj2);
     return compare(key1, key2);
+}
+
+export function heristic(cell1: Cell, cell2: Cell) {
+    requireNonNull(cell1);
+    requireNonNull(cell2);
+
+    return dist(cell1.col, cell1.row, cell2.col, cell2.row);
+}
+
+export function dist(x1: number, y1: number,
+                     x2: number, y2: number): number {
+    let dx = Math.abs(x2 - x1);
+    let dy = Math.abs(y2 - y1);
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+export function evalOr<T>(func: () => T, defaultVal: T = null): T {
+    try {
+        const val = func();
+        return val == null ? defaultVal : val;
+    } catch (e) {
+        return defaultVal;
+    }
 }

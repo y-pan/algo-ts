@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import {TreeStruct} from "../processing/TreeStruct";
 import {TreeStructLevel} from "../types/TreeStructLevelMapped";
 import {BaseTreeStructLevel} from "../types/TreeStructLevel";
-import {isNull} from "../../utils/util";
+import {isNull} from "../../utils/Type";
 import {nlb} from "../../types/Nullable";
 import {BiFunc} from "../../types/BiFunc";
 import {ObjectVis} from "../../types/ObjectVis";

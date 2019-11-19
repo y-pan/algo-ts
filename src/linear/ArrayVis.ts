@@ -1,7 +1,7 @@
 import {nlb} from "../types/Nullable";
 import {BiFunc} from "../types/BiFunc";
 import * as d3 from "d3";
-import {isNull} from "../utils/util";
+import {isNull} from "../utils/Type";
 import {Vis} from "../types/Vis";
 import {Supplier} from "../types/Supplier";
 import {Trigger} from "../triggers/Trigger";
@@ -53,7 +53,7 @@ export class ArrayVis<T> implements Vis<T> {
             if (this.container && typeof this.container === "function") {
                 dom = this.container();
             } else {
-                dom = this.container;
+                dom = this.container as HTMLElement;
             }
             if (!dom) throw "Dom element is required.";
             this.svg = d3.select(dom).append("svg");
