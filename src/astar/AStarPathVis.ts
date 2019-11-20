@@ -74,14 +74,6 @@ export class AStarPathVis implements IVis {
         return this;
     }
 
-    // withNodeText?(textProvider: BiFunc<Cell, number, string>): AStarPathVis {
-    //     throw new Error("Method not implemented.");
-    // }
-
-    // withNodeTextColor(textColorProvider: BiFunc<Cell, number, string>): AStarPathVis {
-    //     throw new Error("Method not implemented.");
-    // }
-
     clear(): void {
         if (this.svgGroup) {
             this.svgGroup.selectAll("text").remove();

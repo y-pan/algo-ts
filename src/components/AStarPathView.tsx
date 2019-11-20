@@ -29,22 +29,24 @@ export class AStarPathView extends React.Component<AStartPathViewProps, AStartPa
             .withNodeColorProvider((cell: Cell, row: number, col: number) => {
                 if (!cell) return "#d9dad8";
                 let color: string = "#d9dad8";
-                if (cell.isPath() && !cell.isGoal() && !cell.isStart()) {
-                    color = cell.isPathTail() ? "#0e5e01" : "#00cb1a";
-                } else if (cell.isOpen() && !cell.isGoal() && !cell.isStart()) {
-                    color = "#358bff";
-                } else if (cell.isClose() && !cell.isGoal() && !cell.isStart()) {
+                if (cell.isPath()) {
+                    color = cell.isPathTail() ? "#03ff00" : "#3ffcff";
+                } else if (cell.isOpen()) {
+                    color = "#8b58ff";
+                } else if (cell.isClose()) {
                     color = "#ff0007";
                 } else if (cell.isWall()) {
                     color = "#040412";
-                } else if (cell.isStart()) {
-                    color = "#ffb683";
+                }
+
+                if (cell.isStart()) {
+                    color = "#ffde09";
                 } else if (cell.isGoal()) {
-                    color = "#740aad";
+                    color = "#ff08df";
                 }
                 return color;
             })
-            .withNodeSize(10);
+            .withNodeSize(8);
 
         const gridOfNumber: number[][] = new Grid()
             .withRows(ROWS)
@@ -79,9 +81,7 @@ export class AStarPathView extends React.Component<AStartPathViewProps, AStartPa
             let worker = setInterval(() => {
                 let next: IteratorResult<any> = gen.next();
                 if (next.done) {
-                    console.log("Done");
-                    // this.aStarVis.withContainer(() => ref).withData(next.value).draw();
-                    // console.log("dist", this.aStar)
+                    this.aStarVis.withContainer(() => ref).withData(next.value).draw();
                     clearInterval(worker);
                 } else {
                     this.aStarVis.withContainer(() => ref).withData(next.value).draw();

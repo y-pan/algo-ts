@@ -62,6 +62,7 @@ export class AStarPath {
             requireNonNull(best);
             if (best.equals(this.goalCell)) {
                 success = true;
+                this.markPathTo(best);
                 break;
             }
             this.openSet.delete(best);
@@ -76,7 +77,8 @@ export class AStarPath {
 
         // done: goal or no path available
         if (success) {
-            console.log("Success", this.path);
+            console.log("Success");
+            return this.gridOfCells
         } else {
             console.log("No path!")
         }
@@ -110,9 +112,9 @@ export class AStarPath {
         this.path = [];
         if (!cell) return;
 
-        if (!cell.equals(this.goalCell) && !cell.equals(this.startCell)) {// dont mess up with start & goal
+        // if (!cell.equals(this.goalCell) && !cell.equals(this.startCell)) {// dont mess up with start & goal
             cell.asPathTail();
-        }
+        // }
         const path = [cell];
 
         let current = cell.cameFrom;
