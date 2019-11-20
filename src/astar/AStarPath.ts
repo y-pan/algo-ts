@@ -1,6 +1,6 @@
 import {Cell} from "./Cell";
 import {arrayOfNonNull, requireAllNonNull, requireFunction, requireNonNull} from "../utils/Type";
-import {heristic} from "../utils/util";
+import {heuristic} from "../utils/util";
 
 export class AStarPath {
     private grid: number[][];
@@ -18,7 +18,7 @@ export class AStarPath {
     }
 
     withGrid(grid: number[][]): AStarPath {// grid of numbers
-        requireNonNull(grid);
+        requireNonNull(grid, "grid cannot be null");
         this.grid = grid;
         return this;
     }
@@ -41,7 +41,7 @@ export class AStarPath {
         return this;
     }
 
-    * buildGen() {
+    * buildGen(): Generator<Cell[][]> {
         this.mapGrid();
         this.setNeighbours();
 
@@ -51,6 +51,7 @@ export class AStarPath {
         // init
         this.openSet = new Set();
         this.closedSet = new Set();
+        this.startCell.g = 0;
         this.openSet.add(this.startCell);
         let success: boolean = false;
 
@@ -59,11 +60,12 @@ export class AStarPath {
             this.unmarkPath();
 
             let best: Cell = this.findBestInOpenSet(); //TODO: use priority queue, instead of set
-            requireNonNull(best);
+            requireNonNull(best, "Cell cannot be null - after findBestInOpenSet");
             if (best.equals(this.goalCell)) {
                 success = true;
                 this.markPathTo(best);
-                break;
+                console.log("success");
+                return this.gridOfCells;
             }
             this.openSet.delete(best);
             best.asClose();
@@ -76,12 +78,12 @@ export class AStarPath {
         }
 
         // done: goal or no path available
-        if (success) {
-            console.log("Success");
-            return this.gridOfCells
-        } else {
-            console.log("No path!")
-        }
+        // if (success) {
+        //     console.log("Success");
+        //     return this.gridOfCells
+        // } else {
+        //     console.log("No path!")
+        // }
     }
 
     private mapGrid(): void {
@@ -100,7 +102,10 @@ export class AStarPath {
                 }
                 return cell;
             })
-        })
+        });
+
+        requireNonNull(this.startCell, "Start cell cannot be null");
+        requireNonNull(this.goalCell, "Goal cell cannot be null");
     }
 
     private unmarkPath(): void {
@@ -167,27 +172,27 @@ export class AStarPath {
             if (nb.isWall() || this.closedSet.has(nb)) {
                 // do nothing
             } else {
-                let isUpdated = false;
+                let shouldUpdate = false;
                 let tempG = cell.g + 1;
                 if (this.openSet.has(nb)) {
                     // nb is open to eval
                     if (tempG < nb.g) { // use smaller g
-                        isUpdated = true;
+                        shouldUpdate = true;
                         nb.g = tempG;
                     } else {
                         // no need to update. current g is smaller
                     }
                 } else {
                     // nb is not open yet
-                    isUpdated = true;
+                    shouldUpdate = true;
                     nb.g = tempG;
                     nb.asOpen();
                     this.openSet.add(nb);
                 }
 
                 // updated g, so need to update h, f, cameFrom, and use it as best
-                if (isUpdated) {
-                    nb.h = heristic(nb, this.goalCell);
+                if (shouldUpdate) {
+                    nb.h = heuristic(nb, this.goalCell);
                     nb.f = nb.g + nb.h;
                     nb.cameFrom = cell;
                     best = nb;

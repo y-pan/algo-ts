@@ -38,9 +38,9 @@ export function compareWith<T, K extends string | number | undefined | null>(obj
     return compare(key1, key2);
 }
 
-export function heristic(cell1: Cell, cell2: Cell) {
-    requireNonNull(cell1);
-    requireNonNull(cell2);
+export function heuristic(cell1: Cell, cell2: Cell) {
+    requireNonNull(cell1, "heuristic cell1 cannot be null");
+    requireNonNull(cell2, "heuristic cell2 cannot be null");
 
     return dist(cell1.col, cell1.row, cell2.col, cell2.row);
 }

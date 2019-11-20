@@ -13,7 +13,7 @@ export class Cell {
         this._f = f;
     }
 
-    private _g: number;
+    private _g: number = -1;
     get g() {
         return this._g;
     }
@@ -76,6 +76,7 @@ export class Cell {
 
     asPath(): void {
         this._path = true;
+        this._pathTail = false;
     }
 
     asPathTail(): void {
@@ -124,7 +125,7 @@ export class Cell {
     }
 
     isPathTail(): boolean {
-        return this._pathTail;
+        return this._path && this._pathTail;
     }
 
     isAt(row: number, col: number): boolean {

@@ -24,9 +24,12 @@ export class AStarPathVis implements IVis {
     private data: Cell[][];
     private nodeColor: (cell: Cell, row: number, col: number) => string;
     private mappedData: MappedData[];
-    private svgGroup: any; //Selection<ElementTagNameMap[string], any, BaseType, any>;
+    private svgGroup: any;
+    private _hasContainer: boolean = false;
 
-    //Selection<BaseType, any, BaseType, any>;
+    hasContainer(): boolean {
+        return this._hasContainer;
+    }
 
     constructor() {
         this.nodeSize = new Trigger<number>(10, (nodeSize: number) => {
@@ -43,7 +46,7 @@ export class AStarPathVis implements IVis {
             if (!domContainer) {
                 throw new Error("Dom element not found");
             }
-
+            this._hasContainer = true;
             this.svg = d3.select(domContainer)
                 .append("svg")
                 .attr("width", this.svgWidth)
