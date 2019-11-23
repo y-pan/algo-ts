@@ -18,7 +18,7 @@ interface AStartPathViewState {
     canKeepGoing: boolean;
 }
 
-const ROWS = 5, COLS = 4;
+const ROWS = 50, COLS = 50;
 const sRow = 0, sCol = 0, gRow = Math.floor(ROWS - 1), gCol = Math.floor((COLS - 1));
 const wallRate = 0.2;
 

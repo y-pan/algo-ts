@@ -1,12 +1,11 @@
 import React from 'react';
 import './App.css';
-import {AStarPathView} from "./components/AStarPathView";
+import Routers from "./Routers";
 
 const App: React.FC = () => {
     return (
         <div className="App">
-            {/*<TreeView/>*/}
-            <AStarPathView/>
+            <Routers/>
         </div>
     );
 };
